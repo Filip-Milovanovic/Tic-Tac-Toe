@@ -1,0 +1,220 @@
+/* body {
+  font-family: sans-serif;
+  font-size: 2rem;
+  background-color: rgb(4, 21, 41);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+} */
+
+/* CUSTOM CSS */
+
+/* 
+-novi branch
+-commit
+-push
+
+
+
+registration
+init project
+init project
+init project
+main
+
+
+
+COLORS:
+rgb(255, 236, 236);
+#ff2121;
+
+*/
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  background-color: rgb(255, 236, 236);
+  font-family: "Rubik", sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 400;
+  color: #555;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  max-width: 120rem;
+  padding: 0 3.2rem;
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ########################################################################## */
+/* HOME PAGE */
+.home-container {
+  text-align: center;
+}
+
+.home-heading {
+  text-align: center;
+  font-size: 10rem;
+  margin-bottom: 10rem;
+  font-weight: 700;
+}
+
+.btn-home {
+  letter-spacing: 0.1rem;
+  font-size: 6.4rem;
+  display: inline-block;
+  margin-left: 5rem;
+  margin-right: 5rem;
+  padding: 2.4rem 4.8rem;
+  border-radius: 1rem;
+  font-weight: 500;
+}
+
+.btn-home:hover {
+  cursor: pointer;
+  scale: 110%;
+  transition: 0.5s all;
+}
+
+.btn--reg_home {
+  background-color: #ff2121;
+  color: rgb(255, 236, 236);
+  border: 0.2rem solid rgb(255, 236, 236);
+}
+
+.btn--reg_home:hover {
+  background-color: #ff0000;
+  color: rgb(255, 255, 255);
+}
+
+.btn--log_home {
+  background-color: rgb(255, 236, 236);
+  color: #ff2121;
+  border: 0.4rem solid #ff2121;
+}
+
+.btn--log_home:cover {
+  color: #ff0000;
+  background-color: rgb(255, 255, 255);
+}
+
+/* ########################################################## */
+/* REGISTRATION PAGE */
+
+.registration {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.registration-heading {
+  font-size: 10rem;
+  margin-bottom: 7rem;
+  text-align: center;
+}
+
+.inputs--reg {
+  font-size: 4.8rem;
+  margin-bottom: 3.6rem;
+  font-weight: 400;
+}
+
+.inputs--reg label {
+  font-size: 4.8rem;
+  margin-right: 3.6rem;
+}
+
+.inputs--reg input {
+  font-size: 4.8rem;
+  border-radius: 1rem;
+  border: 0.2rem solid #ff2121;
+  background-color: rgb(255, 245, 245);
+  padding: 2.4rem 1.6rem;
+}
+
+.btn--reg_reg {
+  text-align: center;
+  width: 40%;
+  font-size: 4.8rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  border-radius: 1rem;
+  background-color: #ff2121;
+  color: rgb(255, 236, 236);
+}
+
+.btn--reg_reg:hover {
+  scale: 110%;
+  cursor: pointer;
+  transition: all 0.5s;
+}
+
+/* ################################################################## */
+/* LOGIN PAGE */
+.login {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-heading {
+  font-size: 10rem;
+  margin-bottom: 7rem;
+  text-align: center;
+}
+
+.inputs--login {
+  display: flex;
+  gap: 2.4rem;
+}
+
+.input-login {
+  font-size: 4.8rem;
+  border-radius: 1rem;
+  border: 0.2rem solid #ff2121;
+  background-color: rgb(255, 245, 245);
+  padding: 2.4rem 1.6rem;
+  margin-bottom: 2.4rem;
+}
+
+.btn--log_log {
+  text-align: center;
+  width: 40%;
+  font-size: 4.8rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  border-radius: 1rem;
+  background-color: #ff2121;
+  color: rgb(255, 236, 236);
+}
+
+.btn--log_log:hover {
+  scale: 110%;
+  cursor: pointer;
+  transition: all 0.5s;
+}
