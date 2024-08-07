@@ -26,8 +26,10 @@ app.use("/register", registerRoute);
 //Refresh - refresh, login, logout - using refresh tokens
 app.use("/refresh", refreshRoute);
 
-//Delete user
+//remove users from some db
 app.use("/delete", deleteUserRoute);
+
+
 
 //Napravljeno zbog ciscenja baze podataka, mada se moze dodati i u funckinalnost :D
 //DELETE

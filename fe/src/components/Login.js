@@ -2,8 +2,12 @@ import React from "react";
 import Axios from "axios";
 import { useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+  //History
+  let navigate = useNavigate();
+
   //Login states
   const [usernameLogin, setUsernameLogin] = useState("");
   const [passwordLogin, setPasswordLogin] = useState("");
@@ -51,40 +55,25 @@ function Login() {
       username: usernameLogin,
       password: passwordLogin,
     }).then((response) => {
-      setUser(response.data);
-      console.log(response.data);
+      if (!response.data.message) {
+        setUser(response.data);
+        localStorage.setItem("user", JSON.stringify(response.data));
+        navigate("/joingame");
+      }
     });
   };
 
-  const logout = async (e) => {
-    try {
-      e.preventDefault();
-      await axiosJWT
-        .post(
-          "http://localhost:5000/refresh/logout",
-          { token: user.refreshToken },
-          {
-            headers: { authorization: "Bearer " + user.accessToken },
-          }
-        )
-        .then((response) => {
-          setUser(null);
-        });
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   // TEST PURPOSES ####################
-  const deleteUser = async (id) => {
-    try {
-      await axiosJWT.delete("http://localhost:5000/delete/register/" + id, {
-        headers: { authorization: "Bearer " + user.accessToken },
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  // const deleteUser = async (id) => {
+  //   try {
+  //     await axiosJWT.delete("http://localhost:5000/delete/register/" + id, {
+  //       headers: { authorization: "Bearer " + user.accessToken },
+  //     });
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
+
 
   return (
     <div className="login">
@@ -110,15 +99,15 @@ function Login() {
       <button className="btn--log_log" onClick={login}>
         Login
       </button>
-      {/* TEST PURPOSES */}
-      <button onClick={() => deleteUser(28)}>DELETE ME</button>
-      {user ? (
+      {/* { TEST PURPOSES */}
+      {/* <button onClick={() => deleteUser(28)}>DELETE ME</button> */}
+      {/* {isLogged ? (
         <button className="btn--log_log" onClick={logout}>
           LOGOUT
         </button>
       ) : (
         <></>
-      )}
+      )}{" "} */}
     </div>
   );
 }

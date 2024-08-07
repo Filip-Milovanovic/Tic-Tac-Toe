@@ -8,13 +8,13 @@ let refreshTokens = [];
 
 const generateAccessToken = (user) => {
   return jwt.sign({ id: user.rows[0].id }, "secret key", {
-    expiresIn: "15m",
+    expiresIn: "3000m",
   });
 };
 
 const generateRefreshToken = (user) => {
   return jwt.sign({ id: user.rows[0].id }, "refresh secret key", {
-    expiresIn: "15m",
+    expiresIn: "3000m",
   });
 };
 
@@ -35,10 +35,10 @@ router.post("/refresh", (req, res) => {
     refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
 
     const newAccessToken = jwt.sign({ id: data.id }, "secret key", {
-      expiresIn: "15m",
+      expiresIn: "3000m",
     });
     const newRefreshToken = jwt.sign({ id: data.id }, "refresh secret key", {
-      expiresIn: "15m",
+      expiresIn: "3000m",
     });
 
     refreshTokens.push(newRefreshToken);
@@ -69,25 +69,43 @@ router.post("/login", async (req, res) => {
     //Add refresh token to array of refresh tokens
     refreshTokens.push(refreshToken);
 
+    //Add user to logged in users table
+    const loggedUser = await pool.query("SELECT FROM loggedUsers WHERE id=$1", [
+      user.rows[0].id,
+    ]);
+
+    //If he is already in base, he can not log in twice
+    if (loggedUser.rows.length === 0) {
+      await pool.query(
+        "INSERT INTO loggedUsers (id, username) VALUES($1,$2) RETURNING *",
+        [user.rows[0].id, user.rows[0].username]
+      );
+    }
+
+    console.log(
+      user.rows[0].id,
+      user.rows[0].username,
+      accessToken,
+      refreshToken
+    );
     //Send data to front-end
     res.json({
+      id: user.rows[0].id,
       username: user.rows[0].username,
       accessToken,
       refreshToken,
     });
   } else {
-    res.status(400).json("Username or password incorrect!");
+    res.json({ message: "Wrong username/password" });
   }
 });
 
 //LOGOUT
-router.post("/logout",verifyJWT, (req, res) => {
+router.post("/logout", verifyJWT, (req, res) => {
   const refreshToken = req.body.token;
-  refreshTokens = refreshTokens.filter(
-    (token) => token !== refreshToken
-  );
+  refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
   console.log("Successfully logged out!");
-  res.status(200).json("You logged out successfully");
+  res.status(200).json({ loggedOut: true });
 });
 
-module.exports = router
+module.exports = router;

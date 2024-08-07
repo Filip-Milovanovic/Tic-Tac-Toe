@@ -5,3 +5,8 @@ CREATE TABLE users(
     username VARCHAR(15),
     password VARCHAR(500)
 );
+
+CREATE TABLE loggedUsers(
+    id INTEGER PRIMARY KEY,
+    username VARCHAR(15)
+);

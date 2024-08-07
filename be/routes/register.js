@@ -6,15 +6,27 @@ router.post("/", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    //INSERT IN DB
-    const newUser = await pool.query(
-      "INSERT INTO users (username, password) VALUES($1,$2) RETURNING *",
-      [username, password]
-    );
+    //Check if user already exists
+    const user = await pool.query("SELECT * FROM users WHERE username = $1", [
+      username,
+    ]);
 
-    res
-      .status(201)
-      .json({ userId: newUser.rows[0].id, usename: newUser.rows[0].username });
+    //INSERT IN DB
+    if (user.rows.length === 0) {
+      const newUser = await pool.query(
+        "INSERT INTO users (username, password) VALUES($1,$2) RETURNING *",
+        [username, password]
+      );
+
+      res
+        .status(201)
+        .json({
+          userId: newUser.rows[0].id,
+          usename: newUser.rows[0].username,
+        });
+    } else {
+      res.json({ message: "This username is already taken. Try another one." });
+    }
   } catch (err) {
     console.error(err);
     res.status(400).send("Error, user not created.");
