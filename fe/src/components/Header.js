@@ -13,7 +13,6 @@ function Header() {
     if (userr) {
       const parsedData = JSON.parse(userr);
       setUser(parsedData);
-      console.log("IZ HEDERA", parsedData);
     }
   }, []);
 

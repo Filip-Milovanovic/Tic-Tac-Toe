@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Header from "./Header";
 import io from "socket.io-client";
+import Square from "./Square";
 
 const socket = io.connect("http://localhost:5000");
+const boardArr = [];
 
 function JoinGame() {
   //User information state
@@ -15,9 +17,10 @@ function JoinGame() {
   const [room, setRoom] = useState("");
   const [joinedRoom, setJoinedRoom] = useState(false);
 
-  //Message States
-  const [message, setMessage] = useState("");
-  const [messageRecieved, setMessageRecieved] = useState("");
+  //Tic-Tac-Toe Game States
+  const [board, setBoard] = useState(["", "", "", "", "", "", "", "", ""]);
+  const [player, setPlayer] = useState("X");
+  const [turn, setTurn] = useState("X");
 
   useEffect(() => {
     const userr = localStorage.getItem("user");
@@ -25,7 +28,6 @@ function JoinGame() {
     if (userr) {
       const parsedData = JSON.parse(userr);
       setUser(parsedData);
-      console.log("IZ JOINA", parsedData);
     }
   }, []);
 
@@ -33,7 +35,7 @@ function JoinGame() {
     setMultiplayer(true);
   };
 
-  //SocketIO functions #####
+  //SocketIO functions #############
   const joinRoom = () => {
     if (room !== "") {
       socket.emit("join_room", room);
@@ -42,28 +44,58 @@ function JoinGame() {
     }
   };
 
-  const sendMessage = () => {
-    socket.emit("send_message", { message, room });
+  const sendMessage = (pl, sq, rm) => {
+    socket.emit("send_message", { rm: room, pl: player, sq: sq });
   };
 
   useEffect(() => {
     socket.on("receive_message", (data) => {
-      setMessageRecieved(data.message);
+      const currentPlayer = data.pl === "X" ? "O" : "X";
+      setPlayer(currentPlayer);
+      setTurn(currentPlayer);
+      // console.log(data, currentPlayer);
+      setBoard((prevBoard) => {
+        const newBoard = [...prevBoard];
+        if (newBoard[data.sq] === "") {
+          newBoard[data.sq] = data.pl;
+        }
+        return newBoard;
+      });
+      console.log(board);
     });
   }, [socket]);
 
   //#########################
 
+  //Tic-Tac-Toe Game Logic
+  const chooseSquare = async (square) => {
+    if (turn === player && board[square] === "") {
+      setTurn(player === "X" ? "O" : "X");
+
+      await sendMessage(player, square, room);
+
+      setBoard((prevBoard) => {
+        const newBoard = [...prevBoard];
+        if (newBoard[square] === "") {
+          newBoard[square] = player;
+        }
+        return newBoard;
+      });
+    }
+    console.log(board);
+  };
+
+  // ######################
+
   const handleJoinRoom = () => {
     setMultiplayer(true);
     joinRoom();
   };
-  console.log(message);
-  console.log(messageRecieved);
 
   return (
     <>
       <Header />
+      {/* MULTIPLAYER GAME */}
       {/* If multiplayer is false */}
       {!multiplayer && (
         <div className="joingame-container">
@@ -102,14 +134,77 @@ function JoinGame() {
       {/* If multiplayer is true, and user is in a room */}
       {multiplayer && joinedRoom && (
         <>
-          <input
-            placeholder="Message..."
-            onChange={(e) => {
-              setMessage(e.target.value);
-            }}
-          />
-          <button onClick={sendMessage}>Send Message</button>
-          {messageRecieved}
+          <div className="board">
+            <div className="row">
+              <Square
+                val={board[0]}
+                chooseSquare={(e) => {
+                  e.preventDefault();
+                  chooseSquare(0);
+                }}
+              />
+              <Square
+                val={board[1]}
+                chooseSquare={(e) => {
+                  e.preventDefault();
+                  chooseSquare(1);
+                }}
+              />
+              <Square
+                val={board[2]}
+                chooseSquare={(e) => {
+                  e.preventDefault();
+                  chooseSquare(2);
+                }}
+              />
+            </div>
+            <div className="row">
+              <Square
+                val={board[3]}
+                chooseSquare={(e) => {
+                  e.preventDefault();
+                  chooseSquare(3);
+                }}
+              />
+              <Square
+                val={board[4]}
+                chooseSquare={(e) => {
+                  e.preventDefault();
+                  chooseSquare(4);
+                }}
+              />
+              <Square
+                val={board[5]}
+                chooseSquare={(e) => {
+                  e.preventDefault();
+                  chooseSquare(5);
+                }}
+              />
+            </div>
+            <div className="row">
+              <Square
+                val={board[6]}
+                chooseSquare={(e) => {
+                  e.preventDefault();
+                  chooseSquare(6);
+                }}
+              />
+              <Square
+                val={board[7]}
+                chooseSquare={(e) => {
+                  e.preventDefault();
+                  chooseSquare(7);
+                }}
+              />
+              <Square
+                val={board[8]}
+                chooseSquare={(e) => {
+                  e.preventDefault();
+                  chooseSquare(8);
+                }}
+              />
+            </div>
+          </div>
         </>
       )}
     </>
