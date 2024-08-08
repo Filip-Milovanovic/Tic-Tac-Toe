@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from "./Header";
 import io from "socket.io-client";
 import Square from "./Square";
+import { Patterns } from "../WinningPatterns";
 
 const socket = io.connect("http://localhost:5000");
 const boardArr = [];
@@ -21,6 +22,7 @@ function JoinGame() {
   const [board, setBoard] = useState(["", "", "", "", "", "", "", "", ""]);
   const [player, setPlayer] = useState("X");
   const [turn, setTurn] = useState("X");
+  const [result, setResult] = useState({ winner: "none", state: "none" });
 
   useEffect(() => {
     const userr = localStorage.getItem("user");
@@ -84,6 +86,41 @@ function JoinGame() {
     }
     console.log(board);
   };
+
+  const checkWin = () => {
+    Patterns.forEach((currPattern) => {
+      const firstPlayer = board[currPattern[0]];
+      if (firstPlayer == "") return;
+      let foundWinningPattern = true;
+      currPattern.forEach((i) => {
+        if (board[i] != firstPlayer) {
+          foundWinningPattern = false;
+        }
+      });
+      if (foundWinningPattern) {
+        setResult({ winner: board[currPattern[0]], state: "won" });
+        alert("Winner: ", board[currPattern[0]]);
+      }
+    });
+  };
+
+  const checkTie = () => {
+    let filled = true;
+    board.forEach((square) => {
+      if (square === "") {
+        filled = false;
+      }
+    });
+    if (filled) {
+      setResult({ winned: "none", state: "tie" });
+      alert("Game tied");
+    }
+  };
+
+  useEffect(() => {
+    checkWin();
+    checkTie();
+  }, [board]);
 
   // ######################
 
