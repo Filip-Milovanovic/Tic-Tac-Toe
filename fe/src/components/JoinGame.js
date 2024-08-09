@@ -5,7 +5,6 @@ import Square from "./Square";
 import { Patterns } from "../WinningPatterns";
 
 const socket = io.connect("http://localhost:5000");
-const boardArr = [];
 
 function JoinGame() {
   //User information state
@@ -90,16 +89,17 @@ function JoinGame() {
   const checkWin = () => {
     Patterns.forEach((currPattern) => {
       const firstPlayer = board[currPattern[0]];
-      if (firstPlayer == "") return;
+      if (firstPlayer === "") return;
       let foundWinningPattern = true;
       currPattern.forEach((i) => {
-        if (board[i] != firstPlayer) {
+        if (board[i] !== firstPlayer) {
           foundWinningPattern = false;
         }
       });
       if (foundWinningPattern) {
         setResult({ winner: board[currPattern[0]], state: "won" });
-        alert("Winner: ", board[currPattern[0]]);
+
+        alert(`Winner:  ${board[currPattern[0]]}`);
       }
     });
   };

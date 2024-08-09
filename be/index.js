@@ -11,6 +11,7 @@ const { Server } = require("socket.io");
 const refreshRoute = require("./routes/refresh");
 const registerRoute = require("./routes/register");
 const deleteUserRoute = require("./routes/deleteUser");
+const gameRoute = require("./routes/game");
 
 //middleware
 app.use(cors());
@@ -30,6 +31,9 @@ app.use("/refresh", refreshRoute);
 
 //remove users from some db
 app.use("/delete", deleteUserRoute);
+
+//game database manipulation
+app.use("/game", gameRoute);
 
 //Napravljeno zbog ciscenja baze podataka, mada se moze dodati i u funckinalnost :D
 //DELETE
