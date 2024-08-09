@@ -21,13 +21,14 @@ function JoinGame() {
   //Tic-Tac-Toe Game States
   const [board, setBoard] = useState(["", "", "", "", "", "", "", "", ""]);
   const [player, setPlayer] = useState("X");
+  const [firstPlayer, setFirstPlayer] = useState(false); //Da se ne bi pravila 2 reda kad stisnemo new game na oba clienta
   const [turn, setTurn] = useState("X");
-  const [result, setResult] = useState({ winner: "none", state: "none" });
   const [gameID, setGameID] = useState(undefined);
   const [finished, setFinished] = useState(false);
   const [winner, setWinner] = useState("X");
 
-  let id;
+  let id,
+    callCount = 1;
 
   useEffect(() => {
     const userr = localStorage.getItem("user");
@@ -40,7 +41,7 @@ function JoinGame() {
 
   const handleCreateMultiplayer = async () => {
     setMultiplayer(true);
-
+    setFirstPlayer(true);
     const player = user.username;
     const typee = "multiplayer";
 
@@ -233,6 +234,51 @@ function JoinGame() {
     }, 500);
   };
 
+  const handleNewGame = async () => {
+    setFinished(false);
+    setPlayer("X");
+    setTurn("X");
+    setBoard(["", "", "", "", "", "", "", "", ""]);
+
+    //MULTIPLAYER
+    const typee = "multiplayer";
+    const player = user.username;
+
+    // Treba da se poziva svaki drugi put, odnosno da se red u bazi pravi samo kad prvi to poziva
+    if (firstPlayer) {
+      console.log("USO");
+      const response = await fetch("http://localhost:5000/game/newGame", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ player1: player, type: typee }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGameID(data.id);
+      }
+    } else {
+      //ZA PLAYERA KOJI JE DRUGI PRITISNUO New Game, odnosno onoga koji se tek joinovao
+      const player = user.username;
+
+      setTimeout(async () => {
+        const myId = Number(localStorage.getItem("gameID"));
+        const response = await fetch(
+          `http://localhost:5000/game/addPlayer2/${myId}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ player2: player }),
+          }
+        );
+      }, 500);
+    }
+  };
+
   const renderMessage = () => {
     if (winner === "X") {
       return <p>Player 1 is the winner!</p>;
@@ -376,7 +422,14 @@ function JoinGame() {
               />
             </div>
           </div>
-          {finished ? <h1>{renderMessage()}</h1> : ""}
+          {finished ? (
+            <>
+              <h1>{renderMessage()}</h1>
+              <button onClick={handleNewGame}>New Game</button>
+            </>
+          ) : (
+            ""
+          )}
         </>
       )}
     </>
