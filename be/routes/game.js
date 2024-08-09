@@ -46,11 +46,11 @@ router.patch("/addPlayer2/:id", async (req, res) => {
 //Dodavanje poteza
 router.patch("/addMove/:id", async (req, res) => {
   const { id } = req.params;
-  const { move, player } = req.body;
+  const { move, player, sign } = req.body;
   console.log(move, player);
 
   // Određivanje kolone u zavisnosti od igrača
-  const column = player === "player1" ? "player2Moves" : "player1Moves";
+  const column = sign === "X" ? "player1Moves" : "player2Moves";
 
   try {
     const result = await pool.query(
@@ -76,27 +76,32 @@ router.patch("/addMove/:id", async (req, res) => {
 
 // Dodavanje polja Winner
 router.patch("/setWinner/:id", async (req, res) => {
-    const { id } = req.params;        
-    const { winner } = req.body;      //winner (može biti 'player1', 'player2' ili 'tie')
-  
-    try {
-      const result = await pool.query(
-        "UPDATE game SET winner = $1, finished = TRUE WHERE id = $2 RETURNING *",
-        [winner, id]
-      );
-  
-      if (result.rowCount === 0) {
-        // Ako nema redova sa tim ID-om, vrati 404
-        res.status(404).send("Game not found");
-      } else {
-        // Vrati ažurirani red
-        res.status(200).json(result.rows[0]);
-      }
-    } catch (err) {
-      console.error("Error setting winner:", err);
-      res.status(500).send("Error setting winner");
+  const { id } = req.params;
+  const { winner } = req.body; //winner (može biti 'X', 'O' ili 'tie')
+  let w;
+  if (winner !== "tie") {
+    w = winner === "X" ? "Player 1" : "Player 2";
+  } else {
+    w = "tie";
+  }
+
+  try {
+    const result = await pool.query(
+      "UPDATE game SET winner = $1, finished = TRUE WHERE id = $2 RETURNING *",
+      [w, id]
+    );
+
+    if (result.rowCount === 0) {
+      // Ako nema redova sa tim ID-om, vrati 404
+      res.status(404).send("Game not found");
+    } else {
+      // Vrati ažurirani red
+      res.status(200).json(result.rows[0]);
     }
-  });
-  
+  } catch (err) {
+    console.error("Error setting winner:", err);
+    res.status(500).send("Error setting winner");
+  }
+});
 
 module.exports = router;

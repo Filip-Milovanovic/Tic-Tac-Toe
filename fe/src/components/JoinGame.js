@@ -16,12 +16,18 @@ function JoinGame() {
   //SocketIO Room States
   const [room, setRoom] = useState("");
   const [joinedRoom, setJoinedRoom] = useState(false);
+  const [anotherUserJoinerRoom, setAnotherUserJoinerRoom] = useState(false);
 
   //Tic-Tac-Toe Game States
   const [board, setBoard] = useState(["", "", "", "", "", "", "", "", ""]);
   const [player, setPlayer] = useState("X");
   const [turn, setTurn] = useState("X");
   const [result, setResult] = useState({ winner: "none", state: "none" });
+  const [gameID, setGameID] = useState(undefined);
+  const [finished, setFinished] = useState(false);
+  const [winner, setWinner] = useState("X");
+
+  let id;
 
   useEffect(() => {
     const userr = localStorage.getItem("user");
@@ -32,8 +38,24 @@ function JoinGame() {
     }
   }, []);
 
-  const handleCreateMultiplayer = () => {
+  const handleCreateMultiplayer = async () => {
     setMultiplayer(true);
+
+    const player = user.username;
+    const typee = "multiplayer";
+
+    const response = await fetch("http://localhost:5000/game/newGame", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ player1: player, type: typee }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setGameID(data.id);
+    }
   };
 
   //SocketIO functions #############
@@ -41,7 +63,6 @@ function JoinGame() {
     if (room !== "") {
       socket.emit("join_room", room);
       setJoinedRoom(true);
-      console.log(room);
     }
   };
 
@@ -49,7 +70,12 @@ function JoinGame() {
     socket.emit("send_message", { rm: room, pl: player, sq: sq });
   };
 
+  const sendID = (rm, id) => {
+    socket.emit("send_id", { rm: room, id: gameID });
+  };
+
   useEffect(() => {
+    //Primljena poruka
     socket.on("receive_message", (data) => {
       const currentPlayer = data.pl === "X" ? "O" : "X";
       setPlayer(currentPlayer);
@@ -62,9 +88,22 @@ function JoinGame() {
         }
         return newBoard;
       });
-      console.log(board);
+    });
+
+    //Primljena poruka cim je neko usao u sobu
+    socket.on("user_joined", (data) => {
+      setAnotherUserJoinerRoom(true);
+    });
+
+    //Primamo gameID kad se joinujemo u sobu
+    socket.on("receive_id", (data) => {
+      id = data.id;
+      localStorage.setItem("gameID", id);
     });
   }, [socket]);
+
+  //Saljemo ID onome ko je usao u sobu
+  if (anotherUserJoinerRoom) sendID(room, gameID);
 
   //#########################
 
@@ -72,8 +111,31 @@ function JoinGame() {
   const chooseSquare = async (square) => {
     if (turn === player && board[square] === "") {
       setTurn(player === "X" ? "O" : "X");
+      const signn = player;
+
+      //##### ZA MULTIPLAYER
+      //Za player2
+      const myId = Number(localStorage.getItem("gameID"));
+
+      //gledamo koji je igrac
+      const playerr = user.username;
+
+      //Slanje u bazu podataka
+      await fetch(
+        `http://localhost:5000/game/addMove/${
+          gameID !== undefined ? gameID : myId
+        }`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ player: playerr, move: square, sign: signn }),
+        }
+      );
 
       await sendMessage(player, square, room);
+      //##################################################
 
       setBoard((prevBoard) => {
         const newBoard = [...prevBoard];
@@ -83,11 +145,10 @@ function JoinGame() {
         return newBoard;
       });
     }
-    console.log(board);
   };
 
-  const checkWin = () => {
-    Patterns.forEach((currPattern) => {
+  const checkWin = async () => {
+    Patterns.forEach(async (currPattern) => {
       const firstPlayer = board[currPattern[0]];
       if (firstPlayer === "") return;
       let foundWinningPattern = true;
@@ -97,14 +158,24 @@ function JoinGame() {
         }
       });
       if (foundWinningPattern) {
-        setResult({ winner: board[currPattern[0]], state: "won" });
+        setFinished(true);
+        setWinner(board[currPattern[0]]);
 
-        alert(`Winner:  ${board[currPattern[0]]}`);
+        //MULTIPLAYER
+        const idStorage = Number(localStorage.getItem("gameID"));
+        const myId = gameID !== undefined ? gameID : idStorage;
+        await fetch(`http://localhost:5000/game/setWinner/${myId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ winner: board[currPattern[0]] }),
+        });
       }
     });
   };
 
-  const checkTie = () => {
+  const checkTie = async () => {
     let filled = true;
     board.forEach((square) => {
       if (square === "") {
@@ -112,8 +183,19 @@ function JoinGame() {
       }
     });
     if (filled) {
-      setResult({ winned: "none", state: "tie" });
-      alert("Game tied");
+      setFinished(true);
+      setWinner("tie");
+
+      //MULTIPLAYER
+      const idStorage = Number(localStorage.getItem("gameID"));
+      const myId = gameID !== undefined ? gameID : idStorage;
+      await fetch(`http://localhost:5000/game/setWinner/${myId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ winner: "tie" }),
+      });
     }
   };
 
@@ -127,6 +209,40 @@ function JoinGame() {
   const handleJoinRoom = () => {
     setMultiplayer(true);
     joinRoom();
+  };
+
+  const handleJoinGame = async () => {
+    //Joinuje se u igru
+    handleJoinRoom();
+
+    const player = user.username;
+
+    //Saljemo API zahtjev da bi se upisao u bazu podataka
+    setTimeout(async () => {
+      const myId = Number(localStorage.getItem("gameID"));
+      const response = await fetch(
+        `http://localhost:5000/game/addPlayer2/${myId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ player2: player }),
+        }
+      );
+    }, 500);
+  };
+
+  const renderMessage = () => {
+    if (winner === "X") {
+      return <p>Player 1 is the winner!</p>;
+    } else if (winner === "O") {
+      return <p>Player 2 is the winner!</p>;
+    } else if (winner === "tie") {
+      return <p>It's a tie!</p>;
+    } else {
+      return <p>The game is ongoing...</p>;
+    }
   };
 
   return (
@@ -150,7 +266,7 @@ function JoinGame() {
                 setRoom(e.target.value);
               }}
             />
-            <button className="joingame-btn-join" onClick={handleJoinRoom}>
+            <button className="joingame-btn-join" onClick={handleJoinGame}>
               Join
             </button>
           </div>
@@ -176,22 +292,28 @@ function JoinGame() {
               <Square
                 val={board[0]}
                 chooseSquare={(e) => {
-                  e.preventDefault();
-                  chooseSquare(0);
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquare(0);
+                  }
                 }}
               />
               <Square
                 val={board[1]}
                 chooseSquare={(e) => {
-                  e.preventDefault();
-                  chooseSquare(1);
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquare(1);
+                  }
                 }}
               />
               <Square
                 val={board[2]}
                 chooseSquare={(e) => {
-                  e.preventDefault();
-                  chooseSquare(2);
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquare(2);
+                  }
                 }}
               />
             </div>
@@ -199,22 +321,28 @@ function JoinGame() {
               <Square
                 val={board[3]}
                 chooseSquare={(e) => {
-                  e.preventDefault();
-                  chooseSquare(3);
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquare(3);
+                  }
                 }}
               />
               <Square
                 val={board[4]}
                 chooseSquare={(e) => {
-                  e.preventDefault();
-                  chooseSquare(4);
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquare(4);
+                  }
                 }}
               />
               <Square
                 val={board[5]}
                 chooseSquare={(e) => {
-                  e.preventDefault();
-                  chooseSquare(5);
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquare(5);
+                  }
                 }}
               />
             </div>
@@ -222,26 +350,33 @@ function JoinGame() {
               <Square
                 val={board[6]}
                 chooseSquare={(e) => {
-                  e.preventDefault();
-                  chooseSquare(6);
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquare(6);
+                  }
                 }}
               />
               <Square
                 val={board[7]}
                 chooseSquare={(e) => {
-                  e.preventDefault();
-                  chooseSquare(7);
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquare(7);
+                  }
                 }}
               />
               <Square
                 val={board[8]}
                 chooseSquare={(e) => {
-                  e.preventDefault();
-                  chooseSquare(8);
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquare(8);
+                  }
                 }}
               />
             </div>
           </div>
+          {finished ? <h1>{renderMessage()}</h1> : ""}
         </>
       )}
     </>

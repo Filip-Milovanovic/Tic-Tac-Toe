@@ -60,10 +60,16 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   socket.on("join_room", (data) => {
     socket.join(data);
+    socket.to(data).emit("user_joined", { message: "New user has joined" });
   });
 
   socket.on("send_message", (data) => {
+    console.log(data)
     socket.to(data.rm).emit("receive_message", data);
+  });
+
+  socket.on("send_id", (data) => {
+    socket.to(data.rm).emit("receive_id", data);
   });
 });
 
