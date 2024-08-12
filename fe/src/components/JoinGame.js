@@ -13,6 +13,9 @@ function JoinGame() {
   //Multiplayer Game State
   const [multiplayer, setMultiplayer] = useState(false);
 
+  //Singleplayer Game State
+  const [singleplayer, setSingleplayer] = useState(false);
+
   //SocketIO Room States
   const [room, setRoom] = useState("");
   const [joinedRoom, setJoinedRoom] = useState(false);
@@ -21,15 +24,18 @@ function JoinGame() {
   //Tic-Tac-Toe Game States
   const [board, setBoard] = useState(["", "", "", "", "", "", "", "", ""]);
   const [player, setPlayer] = useState("X");
+  const [turn, setTurn] = useState("X");
+  //Multiplayer states #####################
   const [firstPlayer, setFirstPlayer] = useState(false); //Da se ne bi pravila 2 reda kad stisnemo new game na oba clienta
   const [newGameCreated, setNewGameCreated] = useState(false); //Drugi igrac dobija poruku da je napravljen novi gejm
   const [canPlay, setCanPlay] = useState(false); //Provjerava da li igrac ima pravo da igra, napravljeno da player2 ne bi mogao da ima prvi potez
-  const [turn, setTurn] = useState("X");
+  //########################################
   const [gameID, setGameID] = useState(undefined);
   const [finished, setFinished] = useState(false);
   const [winner, setWinner] = useState("X");
 
-  let id;
+  let id,
+    gameFinished = false;
 
   useEffect(() => {
     const userr = localStorage.getItem("user");
@@ -58,6 +64,27 @@ function JoinGame() {
     if (response.ok) {
       const data = await response.json();
       setGameID(data.id);
+    }
+  };
+
+  const handleCreateSingleplayer = async () => {
+    setSingleplayer(true);
+
+    const player = user.username;
+    const typee = "singleplayer";
+
+    const response = await fetch("http://localhost:5000/game/newGame", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ player1: player, type: typee }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setGameID(data.id);
+      console.log(data.id);
     }
   };
 
@@ -170,32 +197,119 @@ function JoinGame() {
     }
   };
 
-  const checkWin = async () => {
-    Patterns.forEach(async (currPattern) => {
-      const firstPlayer = board[currPattern[0]];
-      if (firstPlayer === "") return;
-      let foundWinningPattern = true;
-      currPattern.forEach((i) => {
-        if (board[i] !== firstPlayer) {
-          foundWinningPattern = false;
-        }
+  const chooseSquareSingleplayer = async (square) => {
+    if (turn === player && board[square] === "") {
+      const signn = turn;
+
+      setTurn(player === "X" ? "O" : "X");
+
+      const playerr = user.username;
+
+      await fetch(`http://localhost:5000/game/addMove/${gameID}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ player: playerr, move: square, sign: signn }),
       });
+
+      setBoard((prevBoard) => {
+        const newBoard = [...prevBoard];
+        if (newBoard[square] === "") {
+          newBoard[square] = player;
+          checkWin(newBoard);
+        }
+        return newBoard;
+      });
+
+      setTimeout(() => {
+        cpuPlays(square);
+      }, 750);
+    }
+  };
+
+  const cpuPlays = async (square) => {
+    //Random broj izmedju 0 i 8
+    if (gameFinished) return;
+    console.log(finished);
+
+    let randomNumber;
+    console.log(board);
+
+    do {
+      randomNumber = Math.floor(Math.random() * 9);
+    } while (board[randomNumber] !== "" || randomNumber === square);
+
+    console.log("Uslo", randomNumber);
+
+    const cpu = "CPU";
+    const signCpu = "O";
+
+    await fetch(`http://localhost:5000/game/addMove/${gameID}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        player: cpu,
+        move: randomNumber,
+        sign: signCpu,
+      }),
+    });
+
+    setBoard((prevBoard) => {
+      const newBoard = [...prevBoard];
+      if (newBoard[randomNumber] === "") {
+        newBoard[randomNumber] = "O";
+        checkWin(newBoard);
+      }
+      return newBoard;
+    });
+
+    setTurn("X");
+  };
+
+  const checkWin = async (updatedBoard) => {
+    for (const currPattern of Patterns) {
+      const firstPlayer = updatedBoard[currPattern[0]];
+      if (firstPlayer === "") continue;
+
+      let foundWinningPattern = true;
+      for (const i of currPattern) {
+        if (updatedBoard[i] !== firstPlayer) {
+          foundWinningPattern = false;
+          break;
+        }
+      }
+
       if (foundWinningPattern) {
         setFinished(true);
-        setWinner(board[currPattern[0]]);
+        setWinner(updatedBoard[currPattern[0]]);
+        gameFinished = true;
 
-        //MULTIPLAYER
-        const idStorage = Number(localStorage.getItem("gameID"));
-        const myId = gameID !== undefined ? gameID : idStorage;
-        await fetch(`http://localhost:5000/game/setWinner/${myId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ winner: board[currPattern[0]] }),
-        });
+        if (multiplayer) {
+          const idStorage = Number(localStorage.getItem("gameID"));
+          const myId = gameID !== undefined ? gameID : idStorage;
+          await fetch(`http://localhost:5000/game/setWinner/${myId}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ winner: updatedBoard[currPattern[0]] }),
+          });
+        } else if (singleplayer) {
+          await fetch(`http://localhost:5000/game/setWinner/${gameID}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ winner: updatedBoard[currPattern[0]] }),
+          });
+        }
+
+        return;
       }
-    });
+    }
   };
 
   const checkTie = async () => {
@@ -210,20 +324,30 @@ function JoinGame() {
       setWinner("tie");
 
       //MULTIPLAYER
-      const idStorage = Number(localStorage.getItem("gameID"));
-      const myId = gameID !== undefined ? gameID : idStorage;
-      await fetch(`http://localhost:5000/game/setWinner/${myId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ winner: "tie" }),
-      });
+      if (multiplayer) {
+        const idStorage = Number(localStorage.getItem("gameID"));
+        const myId = gameID !== undefined ? gameID : idStorage;
+        await fetch(`http://localhost:5000/game/setWinner/${myId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ winner: "tie" }),
+        });
+      } else {
+        await fetch(`http://localhost:5000/game/setWinner/${gameID}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ winner: "tie" }),
+        });
+      }
     }
   };
 
   useEffect(() => {
-    checkWin();
+    checkWin(board);
     checkTie();
   }, [board]);
 
@@ -307,6 +431,31 @@ function JoinGame() {
     }
   };
 
+  const handleNewGameSingleplayer = async () => {
+    gameFinished = false;
+    setFinished(false);
+    setPlayer("X");
+    setTurn("X");
+    setBoard(["", "", "", "", "", "", "", "", ""]);
+
+    const player = user.username;
+    const typee = "singleplayer";
+
+    const response = await fetch("http://localhost:5000/game/newGame", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ player1: player, type: typee }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setGameID(data.id);
+      console.log(data.id);
+    }
+  };
+
   const renderMessage = () => {
     if (winner === "X") {
       return <p>Player 1 is the winner!</p>;
@@ -324,12 +473,12 @@ function JoinGame() {
       <Header />
       {/* MULTIPLAYER GAME */}
       {/* If multiplayer is false */}
-      {!multiplayer && (
+      {!multiplayer && !singleplayer && (
         <div className="joingame-container">
           <button className="joingame-btn" onClick={handleCreateMultiplayer}>
             Create new multiplayer game
           </button>
-          <button className="joingame-btn">
+          <button className="joingame-btn" onClick={handleCreateSingleplayer}>
             Create new single player game
           </button>
           <div className="joingame-label-div">
@@ -350,12 +499,13 @@ function JoinGame() {
       {multiplayer && !joinedRoom && (
         <>
           <input
+          className="create-room-input"
             placeholder="Enter room number"
             onChange={(e) => {
               setRoom(e.target.value);
             }}
           />
-          <button onClick={joinRoom}>Join Room</button>
+          <button className="create-room-btn" onClick={joinRoom}>Join Room</button>
         </>
       )}
       {/* If multiplayer is true, and user is in a room */}
@@ -460,6 +610,105 @@ function JoinGame() {
             <button onClick={handleNewGame}>New Game</button>
           ) : (
             ""
+          )}
+        </>
+      )}
+      {singleplayer && (
+        <>
+          <div className="board">
+            <div className="row">
+              <Square
+                val={board[0]}
+                chooseSquare={(e) => {
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquareSingleplayer(0);
+                  }
+                }}
+              />
+              <Square
+                val={board[1]}
+                chooseSquare={(e) => {
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquareSingleplayer(1);
+                  }
+                }}
+              />
+              <Square
+                val={board[2]}
+                chooseSquare={(e) => {
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquareSingleplayer(2);
+                  }
+                }}
+              />
+            </div>
+            <div className="row">
+              <Square
+                val={board[3]}
+                chooseSquare={(e) => {
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquareSingleplayer(3);
+                  }
+                }}
+              />
+              <Square
+                val={board[4]}
+                chooseSquare={(e) => {
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquareSingleplayer(4);
+                  }
+                }}
+              />
+              <Square
+                val={board[5]}
+                chooseSquare={(e) => {
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquareSingleplayer(5);
+                  }
+                }}
+              />
+            </div>
+            <div className="row">
+              <Square
+                val={board[6]}
+                chooseSquare={(e) => {
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquareSingleplayer(6);
+                  }
+                }}
+              />
+              <Square
+                val={board[7]}
+                chooseSquare={(e) => {
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquareSingleplayer(7);
+                  }
+                }}
+              />
+              <Square
+                val={board[8]}
+                chooseSquare={(e) => {
+                  if (!finished) {
+                    e.preventDefault();
+                    chooseSquareSingleplayer(8);
+                  }
+                }}
+              />
+            </div>
+          </div>
+          {finished && (
+            <>
+              <h1>{renderMessage()}</h1>
+              <button onClick={handleNewGameSingleplayer}>New Game</button>
+            </>
           )}
         </>
       )}

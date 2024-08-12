@@ -8,10 +8,18 @@ router.post("/newGame", async (req, res) => {
   console.log(player1, type);
 
   try {
-    const result = await pool.query(
-      "INSERT INTO game (player1, type) VALUES ($1, $2) RETURNING *",
-      [player1, type]
-    );
+    let result;
+    if (type === "multiplayer") {
+      result = await pool.query(
+        "INSERT INTO game (player1, type) VALUES ($1, $2) RETURNING *",
+        [player1, type]
+      );
+    } else {
+      result = await pool.query(
+        "INSERT INTO game (player1, player2, type) VALUES ($1, $2, $3) RETURNING *",
+        [player1, "CPU", type]
+      );
+    }
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error("Error inserting new game:", err);
