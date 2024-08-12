@@ -22,13 +22,14 @@ function JoinGame() {
   const [board, setBoard] = useState(["", "", "", "", "", "", "", "", ""]);
   const [player, setPlayer] = useState("X");
   const [firstPlayer, setFirstPlayer] = useState(false); //Da se ne bi pravila 2 reda kad stisnemo new game na oba clienta
+  const [newGameCreated, setNewGameCreated] = useState(false); //Drugi igrac dobija poruku da je napravljen novi gejm
+  const [canPlay, setCanPlay] = useState(false); //Provjerava da li igrac ima pravo da igra, napravljeno da player2 ne bi mogao da ima prvi potez
   const [turn, setTurn] = useState("X");
   const [gameID, setGameID] = useState(undefined);
   const [finished, setFinished] = useState(false);
   const [winner, setWinner] = useState("X");
 
-  let id,
-    callCount = 1;
+  let id;
 
   useEffect(() => {
     const userr = localStorage.getItem("user");
@@ -42,6 +43,7 @@ function JoinGame() {
   const handleCreateMultiplayer = async () => {
     setMultiplayer(true);
     setFirstPlayer(true);
+    setCanPlay(true);
     const player = user.username;
     const typee = "multiplayer";
 
@@ -75,6 +77,14 @@ function JoinGame() {
     socket.emit("send_id", { rm: room, id: gameID });
   };
 
+  const sendNewGameCreated = (rm) => {
+    socket.emit("send_newgame_created", { rm: room });
+  };
+
+  const sendCanPlay = (rm) => {
+    socket.emit("send_canplay", { rm: room });
+  };
+
   useEffect(() => {
     //Primljena poruka
     socket.on("receive_message", (data) => {
@@ -100,6 +110,15 @@ function JoinGame() {
     socket.on("receive_id", (data) => {
       id = data.id;
       localStorage.setItem("gameID", id);
+    });
+
+    //Dobijamo informaciju kao drugi player da je napravljen novi gejm
+    socket.on("receive_newgame_created", (data) => {
+      setNewGameCreated(true);
+    });
+
+    socket.on("receive_canplay", (data) => {
+      setCanPlay(true);
     });
   }, [socket]);
 
@@ -145,6 +164,9 @@ function JoinGame() {
         }
         return newBoard;
       });
+
+      //Dajemo dozvolu playeru 2 da igra
+      sendCanPlay(true);
     }
   };
 
@@ -259,9 +281,15 @@ function JoinGame() {
         const data = await response.json();
         setGameID(data.id);
       }
-    } else {
+      sendNewGameCreated(room);
+    }
+    if (newGameCreated) {
       //ZA PLAYERA KOJI JE DRUGI PRITISNUO New Game, odnosno onoga koji se tek joinovao
       const player = user.username;
+
+      //Da se ne bi cuvali stejtovi u novoj partiji
+      setNewGameCreated(false);
+      setCanPlay(false);
 
       setTimeout(async () => {
         const myId = Number(localStorage.getItem("gameID"));
@@ -338,7 +366,7 @@ function JoinGame() {
               <Square
                 val={board[0]}
                 chooseSquare={(e) => {
-                  if (!finished) {
+                  if (!finished && canPlay) {
                     e.preventDefault();
                     chooseSquare(0);
                   }
@@ -347,7 +375,7 @@ function JoinGame() {
               <Square
                 val={board[1]}
                 chooseSquare={(e) => {
-                  if (!finished) {
+                  if (!finished && canPlay) {
                     e.preventDefault();
                     chooseSquare(1);
                   }
@@ -356,7 +384,7 @@ function JoinGame() {
               <Square
                 val={board[2]}
                 chooseSquare={(e) => {
-                  if (!finished) {
+                  if (!finished && canPlay) {
                     e.preventDefault();
                     chooseSquare(2);
                   }
@@ -367,7 +395,7 @@ function JoinGame() {
               <Square
                 val={board[3]}
                 chooseSquare={(e) => {
-                  if (!finished) {
+                  if (!finished && canPlay) {
                     e.preventDefault();
                     chooseSquare(3);
                   }
@@ -376,7 +404,7 @@ function JoinGame() {
               <Square
                 val={board[4]}
                 chooseSquare={(e) => {
-                  if (!finished) {
+                  if (!finished && canPlay) {
                     e.preventDefault();
                     chooseSquare(4);
                   }
@@ -385,7 +413,7 @@ function JoinGame() {
               <Square
                 val={board[5]}
                 chooseSquare={(e) => {
-                  if (!finished) {
+                  if (!finished && canPlay) {
                     e.preventDefault();
                     chooseSquare(5);
                   }
@@ -396,7 +424,7 @@ function JoinGame() {
               <Square
                 val={board[6]}
                 chooseSquare={(e) => {
-                  if (!finished) {
+                  if (!finished && canPlay) {
                     e.preventDefault();
                     chooseSquare(6);
                   }
@@ -405,7 +433,7 @@ function JoinGame() {
               <Square
                 val={board[7]}
                 chooseSquare={(e) => {
-                  if (!finished) {
+                  if (!finished && canPlay) {
                     e.preventDefault();
                     chooseSquare(7);
                   }
@@ -414,7 +442,7 @@ function JoinGame() {
               <Square
                 val={board[8]}
                 chooseSquare={(e) => {
-                  if (!finished) {
+                  if (!finished && canPlay) {
                     e.preventDefault();
                     chooseSquare(8);
                   }
@@ -422,11 +450,14 @@ function JoinGame() {
               />
             </div>
           </div>
-          {finished ? (
-            <>
-              <h1>{renderMessage()}</h1>
-              <button onClick={handleNewGame}>New Game</button>
-            </>
+          {finished ? <h1>{renderMessage()}</h1> : ""}
+          {finished && firstPlayer ? (
+            <button onClick={handleNewGame}>New Game</button>
+          ) : (
+            ""
+          )}
+          {finished && newGameCreated ? (
+            <button onClick={handleNewGame}>New Game</button>
           ) : (
             ""
           )}

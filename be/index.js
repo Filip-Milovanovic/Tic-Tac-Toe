@@ -64,12 +64,20 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_message", (data) => {
-    console.log(data)
+    console.log(data);
     socket.to(data.rm).emit("receive_message", data);
   });
 
   socket.on("send_id", (data) => {
     socket.to(data.rm).emit("receive_id", data);
+  });
+
+  socket.on("send_newgame_created", (data) => {
+    socket.to(data.rm).emit("receive_newgame_created", data);
+  });
+
+  socket.on("send_canplay", (data) => {
+    socket.to(data.rm).emit("receive_canplay", data);
   });
 });
 
