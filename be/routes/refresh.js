@@ -83,6 +83,7 @@ router.post("/login", async (req, res) => {
     }
 
     console.log(
+      typeof(user.rows[0].id),
       user.rows[0].id,
       user.rows[0].username,
       accessToken,

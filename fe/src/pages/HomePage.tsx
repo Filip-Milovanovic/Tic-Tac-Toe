@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function () {
+const HomePage: React.FC = () => {
   return (
     <div className="home-container">
       <h1 className="home-heading">Tic-Tac-Toe Multiplayer</h1>
@@ -12,4 +12,6 @@ export default function () {
       </a>
     </div>
   );
-}
+};
+
+export default HomePage;

@@ -2,13 +2,13 @@ import React from "react";
 import "../App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-//Pages
+// Pages
 import LoginPage from "../pages/LoginPage";
 import HomePage from "../pages/HomePage";
 import RegisterPage from "../pages/RegisterPage";
 import JoinGamePage from "../pages/JoinGamePage";
 
-function App() {
+const App: React.FC = () => {
   return (
     <div className="container">
       <BrowserRouter>
@@ -21,6 +21,6 @@ function App() {
       </BrowserRouter>
     </div>
   );
-}
+};
 
 export default App;
