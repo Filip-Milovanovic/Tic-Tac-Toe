@@ -4,38 +4,79 @@ import io from "socket.io-client";
 import Square from "./Square";
 import { Patterns } from "../WinningPatterns";
 
-const socket = io.connect("http://localhost:5000");
+const socket = io("http://localhost:5000");
+
+//Definicija tipova za state-ove i funkcije
+interface User {
+  username: string;
+  id: number;
+  accessToken: string;
+  refreshToken: string;
+}
+
+type GameType = "multiplayer" | "singleplayer";
+
+interface MessageData {
+  rm: string;
+  pl: string;
+  sq: number;
+}
+
+interface IDData {
+  id: number;
+}
+
+interface NewGameCreatedData {
+  rm: string;
+}
+
+interface CanPlayData {
+  rm: string;
+}
 
 function JoinGame() {
   //User information state
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
 
   //Multiplayer Game State
-  const [multiplayer, setMultiplayer] = useState(false);
+  const [multiplayer, setMultiplayer] = useState<boolean>(false);
 
   //Singleplayer Game State
-  const [singleplayer, setSingleplayer] = useState(false);
+  const [singleplayer, setSingleplayer] = useState<boolean>(false);
 
   //SocketIO Room States
-  const [room, setRoom] = useState("");
-  const [joinedRoom, setJoinedRoom] = useState(false);
-  const [anotherUserJoinerRoom, setAnotherUserJoinerRoom] = useState(false);
+  const [room, setRoom] = useState<string>("");
+  const [joinedRoom, setJoinedRoom] = useState<boolean>(false);
+  const [anotherUserJoinerRoom, setAnotherUserJoinerRoom] =
+    useState<boolean>(false);
 
   //Tic-Tac-Toe Game States
-  const [board, setBoard] = useState(["", "", "", "", "", "", "", "", ""]);
-  const [player, setPlayer] = useState("X");
-  const [turn, setTurn] = useState("X");
-  //Multiplayer states #####################
-  const [firstPlayer, setFirstPlayer] = useState(false); //Da se ne bi pravila 2 reda kad stisnemo new game na oba clienta
-  const [newGameCreated, setNewGameCreated] = useState(false); //Drugi igrac dobija poruku da je napravljen novi gejm
-  const [canPlay, setCanPlay] = useState(false); //Provjerava da li igrac ima pravo da igra, napravljeno da player2 ne bi mogao da ima prvi potez
-  //########################################
-  const [gameID, setGameID] = useState(undefined);
-  const [finished, setFinished] = useState(false);
-  const [winner, setWinner] = useState("X");
+  const [board, setBoard] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  const [player, setPlayer] = useState<string>("X");
+  const [turn, setTurn] = useState<string>("X");
 
-  let id,
-    gameFinished = false;
+  //Multiplayer states #####################
+  const [firstPlayer, setFirstPlayer] = useState<boolean>(false); //Da se ne bi pravila 2 reda kad stisnemo new game na oba clienta
+  const [newGameCreated, setNewGameCreated] = useState<boolean>(false); //Drugi igrac dobija poruku da je napravljen novi gejm
+  const [canPlay, setCanPlay] = useState<boolean>(false); //Provjerava da li igrac ima pravo da igra, napravljeno da player2 ne bi mogao da ima prvi potez
+  //########################################
+
+  const [gameID, setGameID] = useState<number | undefined>(undefined);
+  const [finished, setFinished] = useState<boolean>(false);
+  const [winner, setWinner] = useState<string>("X");
+
+  let id: number | undefined,
+    gameFinished: boolean = false;
 
   useEffect(() => {
     const userr = localStorage.getItem("user");
@@ -50,8 +91,8 @@ function JoinGame() {
     setMultiplayer(true);
     setFirstPlayer(true);
     setCanPlay(true);
-    const player = user.username;
-    const typee = "multiplayer";
+    const player = user?.username ?? "";
+    const typee: GameType = "multiplayer";
 
     const response = await fetch("http://localhost:5000/game/newGame", {
       method: "POST",
@@ -70,8 +111,8 @@ function JoinGame() {
   const handleCreateSingleplayer = async () => {
     setSingleplayer(true);
 
-    const player = user.username;
-    const typee = "singleplayer";
+    const player = user?.username ?? "";
+    const typee: GameType = "singleplayer";
 
     const response = await fetch("http://localhost:5000/game/newGame", {
       method: "POST",
@@ -96,25 +137,29 @@ function JoinGame() {
     }
   };
 
-  const sendMessage = (pl, sq, rm) => {
-    socket.emit("send_message", { rm: room, pl: player, sq: sq });
+  const sendMessage = (pl: string, sq: number, rm: string) => {
+    socket.emit("send_message", {
+      rm: room,
+      pl: player,
+      sq: sq,
+    } as MessageData);
   };
 
-  const sendID = (rm, id) => {
-    socket.emit("send_id", { rm: room, id: gameID });
+  const sendID = (rm: string, id: number) => {
+    socket.emit("send_id", { rm: room, id: gameID } as IDData);
   };
 
-  const sendNewGameCreated = (rm) => {
-    socket.emit("send_newgame_created", { rm: room });
+  const sendNewGameCreated = (rm: string) => {
+    socket.emit("send_newgame_created", { rm: room } as NewGameCreatedData);
   };
 
-  const sendCanPlay = (rm) => {
-    socket.emit("send_canplay", { rm: room });
+  const sendCanPlay = (rm: string) => {
+    socket.emit("send_canplay", { rm: room } as CanPlayData);
   };
 
   useEffect(() => {
     //Primljena poruka
-    socket.on("receive_message", (data) => {
+    socket.on("receive_message", (data: MessageData) => {
       const currentPlayer = data.pl === "X" ? "O" : "X";
       setPlayer(currentPlayer);
       setTurn(currentPlayer);
@@ -134,13 +179,13 @@ function JoinGame() {
     });
 
     //Primamo gameID kad se joinujemo u sobu
-    socket.on("receive_id", (data) => {
+    socket.on("receive_id", (data: IDData) => {
       id = data.id;
-      localStorage.setItem("gameID", id);
+      localStorage.setItem("gameID", id.toString());
     });
 
     //Dobijamo informaciju kao drugi player da je napravljen novi gejm
-    socket.on("receive_newgame_created", (data) => {
+    socket.on("receive_newgame_created", (data: NewGameCreatedData) => {
       setNewGameCreated(true);
     });
 
@@ -150,12 +195,12 @@ function JoinGame() {
   }, [socket]);
 
   //Saljemo ID onome ko je usao u sobu
-  if (anotherUserJoinerRoom) sendID(room, gameID);
+  if (anotherUserJoinerRoom) sendID(room, gameID ?? 0);
 
   //#########################
 
   //Tic-Tac-Toe Game Logic
-  const chooseSquare = async (square) => {
+  const chooseSquare = async (square: number) => {
     if (turn === player && board[square] === "") {
       setTurn(player === "X" ? "O" : "X");
       const signn = player;
@@ -165,21 +210,16 @@ function JoinGame() {
       const myId = Number(localStorage.getItem("gameID"));
 
       //gledamo koji je igrac
-      const playerr = user.username;
+      const playerr = user?.username ?? "";
 
       //Slanje u bazu podataka
-      await fetch(
-        `http://localhost:5000/game/addMove/${
-          gameID !== undefined ? gameID : myId
-        }`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ player: playerr, move: square, sign: signn }),
-        }
-      );
+      await fetch(`http://localhost:5000/game/addMove/${gameID ?? myId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ player: playerr, move: square, sign: signn }),
+      });
 
       await sendMessage(player, square, room);
       //##################################################
@@ -193,17 +233,17 @@ function JoinGame() {
       });
 
       //Dajemo dozvolu playeru 2 da igra
-      sendCanPlay(true);
+      sendCanPlay(room);
     }
   };
 
-  const chooseSquareSingleplayer = async (square) => {
+  const chooseSquareSingleplayer = async (square: number) => {
     if (turn === player && board[square] === "") {
       const signn = turn;
 
       setTurn(player === "X" ? "O" : "X");
 
-      const playerr = user.username;
+      const playerr = user?.username ?? "";
 
       await fetch(`http://localhost:5000/game/addMove/${gameID}`, {
         method: "PATCH",
@@ -228,12 +268,12 @@ function JoinGame() {
     }
   };
 
-  const cpuPlays = async (square) => {
+  const cpuPlays = async (square: number) => {
     //Random broj izmedju 0 i 8
     if (gameFinished) return;
     console.log(finished);
 
-    let randomNumber;
+    let randomNumber: number;
     console.log(board);
 
     do {
@@ -269,7 +309,7 @@ function JoinGame() {
     setTurn("X");
   };
 
-  const checkWin = async (updatedBoard) => {
+  const checkWin = async (updatedBoard: string[]) => {
     for (const currPattern of Patterns) {
       const firstPlayer = updatedBoard[currPattern[0]];
       if (firstPlayer === "") continue;
@@ -362,21 +402,18 @@ function JoinGame() {
     //Joinuje se u igru
     handleJoinRoom();
 
-    const player = user.username;
+    const player = user?.username ?? "";
 
     //Saljemo API zahtjev da bi se upisao u bazu podataka
     setTimeout(async () => {
       const myId = Number(localStorage.getItem("gameID"));
-      const response = await fetch(
-        `http://localhost:5000/game/addPlayer2/${myId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ player2: player }),
-        }
-      );
+      await fetch(`http://localhost:5000/game/addPlayer2/${myId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ player2: player }),
+      });
     }, 500);
   };
 
@@ -388,7 +425,7 @@ function JoinGame() {
 
     //MULTIPLAYER
     const typee = "multiplayer";
-    const player = user.username;
+    const player = user?.username ?? "";
 
     // Treba da se poziva svaki drugi put, odnosno da se red u bazi pravi samo kad prvi to poziva
     if (firstPlayer) {
@@ -409,7 +446,7 @@ function JoinGame() {
     }
     if (newGameCreated) {
       //ZA PLAYERA KOJI JE DRUGI PRITISNUO New Game, odnosno onoga koji se tek joinovao
-      const player = user.username;
+      const player = user?.username ?? "";
 
       //Da se ne bi cuvali stejtovi u novoj partiji
       setNewGameCreated(false);
@@ -417,16 +454,13 @@ function JoinGame() {
 
       setTimeout(async () => {
         const myId = Number(localStorage.getItem("gameID"));
-        const response = await fetch(
-          `http://localhost:5000/game/addPlayer2/${myId}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ player2: player }),
-          }
-        );
+        await fetch(`http://localhost:5000/game/addPlayer2/${myId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ player2: player }),
+        });
       }, 500);
     }
   };
@@ -438,7 +472,7 @@ function JoinGame() {
     setTurn("X");
     setBoard(["", "", "", "", "", "", "", "", ""]);
 
-    const player = user.username;
+    const player = user?.username ?? "";
     const typee = "singleplayer";
 
     const response = await fetch("http://localhost:5000/game/newGame", {
@@ -499,13 +533,15 @@ function JoinGame() {
       {multiplayer && !joinedRoom && (
         <>
           <input
-          className="create-room-input"
+            className="create-room-input"
             placeholder="Enter room number"
             onChange={(e) => {
               setRoom(e.target.value);
             }}
           />
-          <button className="create-room-btn" onClick={joinRoom}>Join Room</button>
+          <button className="create-room-btn" onClick={joinRoom}>
+            Join Room
+          </button>
         </>
       )}
       {/* If multiplayer is true, and user is in a room */}
@@ -515,27 +551,24 @@ function JoinGame() {
             <div className="row">
               <Square
                 val={board[0]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished && canPlay) {
-                    e.preventDefault();
                     chooseSquare(0);
                   }
                 }}
               />
               <Square
                 val={board[1]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished && canPlay) {
-                    e.preventDefault();
                     chooseSquare(1);
                   }
                 }}
               />
               <Square
                 val={board[2]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished && canPlay) {
-                    e.preventDefault();
                     chooseSquare(2);
                   }
                 }}
@@ -544,27 +577,24 @@ function JoinGame() {
             <div className="row">
               <Square
                 val={board[3]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished && canPlay) {
-                    e.preventDefault();
                     chooseSquare(3);
                   }
                 }}
               />
               <Square
                 val={board[4]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished && canPlay) {
-                    e.preventDefault();
                     chooseSquare(4);
                   }
                 }}
               />
               <Square
                 val={board[5]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished && canPlay) {
-                    e.preventDefault();
                     chooseSquare(5);
                   }
                 }}
@@ -573,27 +603,24 @@ function JoinGame() {
             <div className="row">
               <Square
                 val={board[6]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished && canPlay) {
-                    e.preventDefault();
                     chooseSquare(6);
                   }
                 }}
               />
               <Square
                 val={board[7]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished && canPlay) {
-                    e.preventDefault();
                     chooseSquare(7);
                   }
                 }}
               />
               <Square
                 val={board[8]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished && canPlay) {
-                    e.preventDefault();
                     chooseSquare(8);
                   }
                 }}
@@ -619,27 +646,24 @@ function JoinGame() {
             <div className="row">
               <Square
                 val={board[0]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished) {
-                    e.preventDefault();
                     chooseSquareSingleplayer(0);
                   }
                 }}
               />
               <Square
                 val={board[1]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished) {
-                    e.preventDefault();
                     chooseSquareSingleplayer(1);
                   }
                 }}
               />
               <Square
                 val={board[2]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished) {
-                    e.preventDefault();
                     chooseSquareSingleplayer(2);
                   }
                 }}
@@ -648,27 +672,24 @@ function JoinGame() {
             <div className="row">
               <Square
                 val={board[3]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished) {
-                    e.preventDefault();
                     chooseSquareSingleplayer(3);
                   }
                 }}
               />
               <Square
                 val={board[4]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished) {
-                    e.preventDefault();
                     chooseSquareSingleplayer(4);
                   }
                 }}
               />
               <Square
                 val={board[5]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished) {
-                    e.preventDefault();
                     chooseSquareSingleplayer(5);
                   }
                 }}
@@ -677,27 +698,24 @@ function JoinGame() {
             <div className="row">
               <Square
                 val={board[6]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished) {
-                    e.preventDefault();
                     chooseSquareSingleplayer(6);
                   }
                 }}
               />
               <Square
                 val={board[7]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished) {
-                    e.preventDefault();
                     chooseSquareSingleplayer(7);
                   }
                 }}
               />
               <Square
                 val={board[8]}
-                chooseSquare={(e) => {
+                chooseSquare={() => {
                   if (!finished) {
-                    e.preventDefault();
                     chooseSquareSingleplayer(8);
                   }
                 }}
