@@ -16,6 +16,10 @@ function Header() {
     }
   }, []);
 
+  const reload = () => {
+    window.location.reload();
+  };
+
   const logout = async (e) => {
     try {
       e.preventDefault();
@@ -53,6 +57,9 @@ function Header() {
     <nav className="navbar">
       <button className="navbar-button" onClick={logout}>
         LOG OUT
+      </button>
+      <button className="navbar-button" onClick={reload}>
+        CREATE NEW GAME
       </button>
     </nav>
   );

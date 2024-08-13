@@ -5,7 +5,7 @@
 }
 
 html {
-  font-size: 62.5%;
+  font-size: 31%;
 }
 
 body {
@@ -200,6 +200,7 @@ body {
   color: rgb(255, 236, 236);
   font-size: 4rem;
   cursor: pointer;
+  margin-right: 2rem;
   background-color: #ff2121;
   border-radius: 2rem;
 }
@@ -270,6 +271,29 @@ body {
   padding: 1rem;
   border-radius: 2rem;
   margin-right: 3rem;
+}
+
+/* CREATE ROOM */
+.create-room-input {
+  font-size: 4.8rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background-color: rgb(255, 236, 236);
+  margin-right: 2rem;
+}
+
+.create-room-btn {
+  font-size: 4.8rem;
+  padding: 1rem 3rem;
+  border-radius: 2rem;
+  background-color: #ff2121;
+  color: rgb(255, 236, 236);
+  cursor: pointer;
+}
+
+.create-room-btn:hover {
+  scale: 110%;
+  transition: all 0.5s;
 }
 
 /* TIC-TAC-TOE BOARD */
