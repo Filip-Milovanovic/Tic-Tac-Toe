@@ -1,0 +1,35 @@
+version: "3"
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: 123321
+      POSTGRES_USER: postgres
+      POSTGRES_DB: tictactoe
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./be/database.sql:/docker-entrypoint-initdb.d/database.sql
+
+  backend:
+    build:
+      context: ./be
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      POSTGRES_PASSWORD: 123321
+      POSTGRES_USER: postgres
+      POSTGRES_DB: tictactoe
+      POSTGRES_HOST: db
+
+  frontend:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend

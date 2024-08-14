@@ -4,9 +4,9 @@ import { Pool } from 'pg';
 const poolConfig = {
     user: "postgres",
     password: "123321",
-    host: "localhost",
+    host: "db",
     port: 5432,
-    database: "ttt2"
+    database: "tictactoe"
 };
 
 // Kreiraj instancu Pool-a sa konfiguracijom

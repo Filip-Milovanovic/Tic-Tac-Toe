@@ -1,4 +1,12 @@
-CREATE DATABASE ttt2;
+DO $$ 
+BEGIN
+   IF NOT EXISTS (
+      SELECT FROM pg_database
+      WHERE datname = 'tictactoe'
+   ) THEN
+      CREATE DATABASE tictactoe;
+   END IF;
+END $$;
 
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,
