@@ -24,60 +24,34 @@ export async function updateBoardMP(
   }
 }
 
-export async function checkIfWin(
-  updatedBoard: string[],
-  multiplayer: boolean,
-  singleplayer: boolean,
-  Patterns: number[][],
-  myId: number
+export async function sendMessage(
+  square: number,
+  player: string,
+  room: string,
+  playerr: string
 ) {
-  let finishedd, winnerr, gameFinishedd;
-  const response = await fetch(`http://localhost:5000/gameLogic/checkWin`, {
+  await fetch(`http://localhost:5000/gameLogic/sendMessage`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      updatedBoard: updatedBoard,
-      multiplayer: multiplayer,
-      singleplayer: singleplayer,
-      Patterns: Patterns,
-      myId: myId,
+      sq: square,
+      pl: player,
+      rm: room,
+      player: playerr,
     }),
   });
-
-  if (response.ok) {
-    const data = await response.json();
-    finishedd = data.finished;
-    winnerr = data.winner;
-    gameFinishedd = data.gameFinished;
-    return { finishedd, winnerr, gameFinishedd };
-  }
 }
 
-export async function checkIfTied(
-  board: string[],
-  multiplayer: boolean,
-  myId: number
-) {
-  let finishedd, winnerr;
-  const response = await fetch(`http://localhost:5000/gameLogic/checkTie`, {
+export async function sendCanPlayFun(room: string) {
+  await fetch("http://localhost:5000/gameLogic/canPlay", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      board: board,
-      multiplayer: multiplayer,
-      myId: myId,
-    }),
+    body: JSON.stringify({ rm: room }),
   });
-
-  if (response.ok) {
-    const data = await response.json();
-    finishedd = data.finished;
-    winnerr = data.winner;
-    return { finishedd, winnerr };
-  }
 }
+
 

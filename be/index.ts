@@ -45,10 +45,15 @@ io.on("connection", (socket: Socket) => {
   });
 
   app.post("/gameLogic/sendMessage", (req: Request, res: Response) => {
-    const { pl, sq, rm }: { pl: string; sq: number; rm: string } = req.body;
-    const data = { pl, sq, rm };
+    const {
+      pl,
+      sq,
+      rm,
+      player,
+    }: { player: string; pl: string; sq: number; rm: string } = req.body;
+    const data = { pl, sq, rm, player };
     res.json({ message: "Message sent" });
-    socket.to(rm).emit("receive_message", data);
+    io.to(rm).emit("receive_message", data);
   });
 
   app.post("/gameLogic/sendId", (req: Request, res: Response) => {

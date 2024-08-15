@@ -3,7 +3,7 @@ import Header from "./Header";
 import io from "socket.io-client";
 import Square from "./Square";
 import { Patterns } from "../WinningPatterns";
-import { updateBoardMP } from "utils/utils";
+import { sendCanPlayFun, sendMessage, updateBoardMP } from "utils/utils";
 
 const socket = io("http://localhost:5000");
 
@@ -21,6 +21,7 @@ interface MessageData {
   rm: string;
   pl: string;
   sq: number;
+  player: string;
 }
 
 interface IDData {
@@ -77,7 +78,8 @@ function JoinGame() {
   const [winner, setWinner] = useState<string>("X");
 
   let id: number | undefined,
-    gameFinished: boolean = false;
+    gameFinished: boolean = false,
+    username: string;
 
   useEffect(() => {
     const userr = localStorage.getItem("user");
@@ -85,6 +87,7 @@ function JoinGame() {
     if (userr) {
       const parsedData = JSON.parse(userr);
       setUser(parsedData);
+      username = parsedData.username;
     }
   }, []);
 
@@ -141,17 +144,22 @@ function JoinGame() {
   useEffect(() => {
     //Primljena poruka
     socket.on("receive_message", (data: MessageData) => {
-      const currentPlayer = data.pl === "X" ? "O" : "X";
-      setPlayer(currentPlayer);
-      setTurn(currentPlayer);
-      // console.log(data, currentPlayer);
-      setBoard((prevBoard) => {
-        const newBoard = [...prevBoard];
-        if (newBoard[data.sq] === "") {
-          newBoard[data.sq] = data.pl;
-        }
-        return newBoard;
-      });
+      const name = data.player;
+
+      if (name !== username) {
+        const currentPlayer = data.pl === "X" ? "O" : "X";
+
+        setPlayer(currentPlayer);
+        setTurn(currentPlayer);
+
+        setBoard((prevBoard) => {
+          const newBoard = [...prevBoard];
+          if (newBoard[data.sq] === "") {
+            newBoard[data.sq] = data.pl;
+          }
+          return newBoard;
+        });
+      }
     });
 
     //Primljena poruka cim je neko usao u sobu
@@ -215,33 +223,22 @@ function JoinGame() {
         body: JSON.stringify({ player: playerr, move: square, sign: signn }),
       });
 
-      const response = await fetch(
-        `http://localhost:5000/gameLogic/sendMessage`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ sq: square, pl: player, rm: room }),
-        }
-      );
+      //Saljemo poruku drugom igracu sta smo odigrali
+      await sendMessage(square, player, room, playerr);
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data.message);
-      }
       //##################################################
 
       setBoard(await updateBoardMP(board, square, player));
 
       //Dajemo dozvolu playeru 2 da igra
-      const res = await fetch("http://localhost:5000/gameLogic/canPlay", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rm: room }),
-      });
+      sendCanPlayFun(room);
+      // await fetch("http://localhost:5000/gameLogic/canPlay", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({ rm: room }),
+      // });
     }
   };
 
@@ -406,7 +403,6 @@ function JoinGame() {
 
     // Treba da se poziva svaki drugi put, odnosno da se red u bazi pravi samo kad prvi to poziva
     if (firstPlayer) {
-      console.log("USO");
       const response = await fetch("http://localhost:5000/game/newGame", {
         method: "POST",
         headers: {
@@ -419,7 +415,7 @@ function JoinGame() {
         const data = await response.json();
         setGameID(data.id);
       }
-      // sendNewGameCreated(room);
+      
       const res = await fetch(
         "http://localhost:5000/gameLogic/newGameCreated",
         {
