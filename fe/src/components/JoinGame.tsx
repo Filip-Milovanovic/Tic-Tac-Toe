@@ -76,6 +76,7 @@ function JoinGame() {
   const [gameID, setGameID] = useState<number | undefined>(undefined);
   const [finished, setFinished] = useState<boolean>(false);
   const [winner, setWinner] = useState<string>("X");
+  const [gameStarted, setGameStarted] = useState<boolean>(true);
 
   let id: number | undefined,
     gameFinished: boolean = false,
@@ -92,6 +93,7 @@ function JoinGame() {
   }, []);
 
   const handleCreateMultiplayer = async () => {
+    setGameStarted(false);
     setMultiplayer(true);
     setFirstPlayer(true);
     setCanPlay(true);
@@ -165,6 +167,7 @@ function JoinGame() {
     //Primljena poruka cim je neko usao u sobu
     socket.on("user_joined", (data) => {
       setAnotherUserJoinerRoom(true);
+      setGameStarted(true);
     });
 
     //Primamo gameID kad se joinujemo u sobu
@@ -203,7 +206,7 @@ function JoinGame() {
 
   //Tic-Tac-Toe Game Logic
   const chooseSquare = async (square: number) => {
-    if (turn === player && board[square] === "") {
+    if (turn === player && board[square] === "" && gameStarted) {
       setTurn(player === "X" ? "O" : "X");
       const signn = player;
 
@@ -415,7 +418,7 @@ function JoinGame() {
         const data = await response.json();
         setGameID(data.id);
       }
-      
+
       const res = await fetch(
         "http://localhost:5000/gameLogic/newGameCreated",
         {
