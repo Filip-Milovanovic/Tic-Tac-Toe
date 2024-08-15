@@ -536,6 +536,7 @@ function JoinGame() {
       {/* If multiplayer is true, and user is in a room */}
       {multiplayer && joinedRoom && (
         <>
+          {!gameStarted && <p>Waiting for other player to join...</p>}
           <div className="board">
             {[0, 1, 2].map((rowIndex) => (
               <div className="row" key={rowIndex}>
