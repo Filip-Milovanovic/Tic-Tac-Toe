@@ -3,6 +3,7 @@ import Header from "./Header";
 import io from "socket.io-client";
 import Square from "./Square";
 import { Patterns } from "../WinningPatterns";
+import axios from "axios";
 import { sendCanPlayFun, sendMessage, updateBoardMP } from "utils/utils";
 
 const socket = io("http://localhost:5000");
@@ -100,17 +101,35 @@ function JoinGame() {
     const player = user?.username ?? "";
     const typee: GameType = "multiplayer";
 
-    const response = await fetch("http://localhost:5000/game/newGame", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ player1: player, type: typee }),
-    });
+    const query = `
+      mutation CreateGame($player1: String!, $type: String!) {
+        createNewGame(player1: $player1, type: $type) {
+          id
+        }
+      }
+    `;
 
-    if (response.ok) {
-      const data = await response.json();
-      setGameID(data.id);
+    const variables = {
+      player1: player,
+      type: typee,
+    };
+
+    const response = await axios.post(
+      "http://localhost:4000",
+      {
+        query: query,
+        variables: variables,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.data.data.createNewGame.id !== "") {
+      const data = await response.data.data.createNewGame.id;
+      setGameID(data);
     }
   };
 
@@ -120,18 +139,35 @@ function JoinGame() {
     const player = user?.username ?? "";
     const typee: GameType = "singleplayer";
 
-    const response = await fetch("http://localhost:5000/game/newGame", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ player1: player, type: typee }),
-    });
+    const query = `
+      mutation CreateGame($player1: String!, $type: String!) {
+        createNewGame(player1: $player1, type: $type) {
+          id
+        }
+      }
+    `;
 
-    if (response.ok) {
-      const data = await response.json();
-      setGameID(data.id);
-      console.log(data.id);
+    const variables = {
+      player1: player,
+      type: typee,
+    };
+
+    const response = await axios.post(
+      "http://localhost:4000",
+      {
+        query: query,
+        variables: variables,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.data.data.createNewGame.id !== "") {
+      const data = await response.data.data.createNewGame.id;
+      setGameID(data);
     }
   };
 
@@ -235,13 +271,6 @@ function JoinGame() {
 
       //Dajemo dozvolu playeru 2 da igra
       sendCanPlayFun(room);
-      // await fetch("http://localhost:5000/gameLogic/canPlay", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({ rm: room }),
-      // });
     }
   };
 
@@ -404,19 +433,37 @@ function JoinGame() {
     const typee = "multiplayer";
     const player = user?.username ?? "";
 
+    const query = `
+      mutation CreateGame($player1: String!, $type: String!) {
+        createNewGame(player1: $player1, type: $type) {
+          id
+        }
+      }
+    `;
+
+    const variables = {
+      player1: player,
+      type: typee,
+    };
+
     // Treba da se poziva svaki drugi put, odnosno da se red u bazi pravi samo kad prvi to poziva
     if (firstPlayer) {
-      const response = await fetch("http://localhost:5000/game/newGame", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await axios.post(
+        "http://localhost:4000",
+        {
+          query: query,
+          variables: variables,
         },
-        body: JSON.stringify({ player1: player, type: typee }),
-      });
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      if (response.ok) {
-        const data = await response.json();
-        setGameID(data.id);
+      if (response.data.data.createNewGame.id !== "") {
+        const data = await response.data.data.createNewGame.id;
+        setGameID(data);
       }
 
       const res = await fetch(
@@ -464,18 +511,35 @@ function JoinGame() {
     const player = user?.username ?? "";
     const typee = "singleplayer";
 
-    const response = await fetch("http://localhost:5000/game/newGame", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ player1: player, type: typee }),
-    });
+    const query = `
+      mutation CreateGame($player1: String!, $type: String!) {
+        createNewGame(player1: $player1, type: $type) {
+          id
+        }
+      }
+    `;
 
-    if (response.ok) {
-      const data = await response.json();
-      setGameID(data.id);
-      console.log(data.id);
+    const variables = {
+      player1: player,
+      type: typee,
+    };
+
+    const response = await axios.post(
+      "http://localhost:4000",
+      {
+        query: query,
+        variables: variables,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.data.data.createNewGame.id !== "") {
+      const data = await response.data.data.createNewGame.id;
+      setGameID(data);
     }
   };
 

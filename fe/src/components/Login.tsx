@@ -20,9 +20,12 @@ const Login: React.FC = () => {
 
   const refreshToken = async () => {
     try {
-      const response = await Axios.post("http://localhost:5000/refresh/refresh", {
-        token: user?.refreshToken,
-      });
+      const response = await Axios.post(
+        "http://localhost:5000/refresh/refresh",
+        {
+          token: user?.refreshToken,
+        }
+      );
       setUser({
         ...user!,
         accessToken: response.data.accessToken,
@@ -57,14 +60,45 @@ const Login: React.FC = () => {
 
   const login = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const response = await Axios.post("http://localhost:5000/refresh/login", {
+
+    const query = `
+    mutation LogUser($user: LogUserInput!) {
+      logUser(user: $user) {
+        id
+        username
+        accessToken
+        refreshToken
+      }
+    }
+  `;
+
+    const variables = {
+      user: {
         username: usernameLogin,
         password: passwordLogin,
-      });
-      if (!response.data.message) {
-        setUser(response.data);
-        localStorage.setItem("user", JSON.stringify(response.data));
+      },
+    };
+
+    try {
+      const response = await Axios.post(
+        "http://localhost:4000",
+        {
+          query: query,
+          variables: variables,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log(response);
+      if (response.data.data.logUser.username !== "") {
+        setUser(response.data.data.logUser);
+        localStorage.setItem(
+          "user",
+          JSON.stringify(response.data.data.logUser)
+        );
         navigate("/joingame");
       }
     } catch (err) {

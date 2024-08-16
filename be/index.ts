@@ -1,10 +1,8 @@
 import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import jwt from "jsonwebtoken";
 import http from "http";
 import { Server, Socket } from "socket.io";
-import pool from "./db";
 import refreshRoute from "./routes/refresh";
 import registerRoute from "./routes/register";
 import deleteUserRoute from "./routes/deleteUser";
@@ -49,11 +47,11 @@ io.on("connection", (socket: Socket) => {
       pl,
       sq,
       rm,
-      player,
-    }: { player: string; pl: string; sq: number; rm: string } = req.body;
-    const data = { pl, sq, rm, player };
+      playerr,
+    }: { playerr: string; pl: string; sq: number; rm: string } = req.body;
+    const data = { pl, sq, rm, playerr };
     res.json({ message: "Message sent" });
-    io.to(rm).emit("receive_message", data);
+    socket.broadcast.to(rm).emit("receive_message", data);
   });
 
   app.post("/gameLogic/sendId", (req: Request, res: Response) => {

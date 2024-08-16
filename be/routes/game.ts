@@ -21,6 +21,7 @@ router.post("/newGame", async (req: Request, res: Response) => {
         [player1, "CPU", type]
       );
     }
+    console.log("Odgovor:", result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error("Error inserting new game:", err);
@@ -42,7 +43,6 @@ router.patch("/addPlayer2/:id", async (req: Request, res: Response) => {
     if (result.rowCount === 0) {
       res.status(404).send("Game not found");
     } else {
-
       res.json({ playerJoined: true });
     }
   } catch (err) {

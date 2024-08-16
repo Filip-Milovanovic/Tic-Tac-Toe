@@ -29,35 +29,41 @@ const Header: React.FC = () => {
   };
 
   const logout = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const query = `
+      query GetUserLogoutStatus($user: LogUserOutInput!) {
+        logUserOut(user: $user) {
+          loggedOut
+        }
+      }`;
+
+    const variables = {
+      user: {
+        refreshToken: user?.refreshToken,
+      },
+    };
+
     try {
       e.preventDefault();
       if (user) {
-        await axios
-          .post(
-            "http://localhost:5000/refresh/logout",
-            { token: user.refreshToken },
-            {
-              headers: { authorization: "Bearer " + user.accessToken },
-            }
-          )
-          .then((response) => {
-            if (response.data.loggedOut) {
-              deleteLoggedOutUser(user.id);
-              setUser(null);
-              navigate("/login");
-            }
-          });
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
+        const response = await axios.post(
+          "http://localhost:4000",
+          {
+            query: query,
+            variables: variables,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data);
 
-  const deleteLoggedOutUser = async (id: string) => {
-    try {
-      await fetch("http://localhost:5000/delete/login/" + id, {
-        method: "DELETE",
-      });
+        if (response.data.data.logUserOut.loggedOut) {
+          setUser(null);
+          navigate("/login");
+        }
+      }
     } catch (err) {
       console.log(err);
     }

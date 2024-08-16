@@ -8,12 +8,36 @@ const Register: React.FC = () => {
 
   const register = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const response = await Axios.post("http://localhost:5000/register", {
+
+    const query = `
+      mutation addUser($user: AddUserInput!) {
+        addUser(user: $user) {
+          username
+          password
+        }
+      }
+  `;
+
+    const variables = {
+      user: {
         username: usernameReg,
         password: passwordReg,
-      });
-      console.log(response);
+      },
+    };
+
+    try {
+      await Axios.post(
+        "http://localhost:4000",
+        {
+          query: query,
+          variables: variables,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
     } catch (err) {
       console.log(err);
     }
