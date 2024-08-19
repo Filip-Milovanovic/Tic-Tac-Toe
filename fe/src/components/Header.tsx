@@ -46,7 +46,7 @@ const Header: React.FC = () => {
       e.preventDefault();
       if (user) {
         const response = await axios.post(
-          "http://localhost:4000",
+          "http://localhost:4000/graphql",
           {
             query: query,
             variables: variables,

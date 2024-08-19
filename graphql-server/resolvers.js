@@ -143,7 +143,7 @@ export const resolvers = {
         };
 
         const response = await axios.post(
-          "http://localhost:4000",
+          "http://localhost:4000/graphql",
           {
             query: query,
             variables: variables,
@@ -209,7 +209,7 @@ export const resolvers = {
           };
 
           const response = await axios.post(
-            "http://localhost:4000",
+            "http://localhost:4000/graphql",
             {
               query: query,
               variables: variables,
@@ -235,7 +235,7 @@ export const resolvers = {
           };
 
           const response = await axios.post(
-            "http://localhost:4000",
+            "http://localhost:4000/graphql",
             {
               query: query,
               variables: variables,
@@ -295,7 +295,7 @@ export const resolvers = {
             };
 
             const response = await axios.post(
-              "http://localhost:4000",
+              "http://localhost:4000/graphql",
               {
                 query: query,
                 variables: variables,
@@ -321,7 +321,7 @@ export const resolvers = {
             };
 
             const response = await axios.post(
-              "http://localhost:4000",
+              "http://localhost:4000/graphql",
               {
                 query: query,
                 variables: variables,

@@ -27,7 +27,7 @@ const Register: React.FC = () => {
 
     try {
       await Axios.post(
-        "http://localhost:4000",
+        "http://localhost:4000/graphql",
         {
           query: query,
           variables: variables,

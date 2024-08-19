@@ -4,9 +4,9 @@ import io from "socket.io-client";
 import Square from "./Square";
 import { Patterns } from "../WinningPatterns";
 import axios from "axios";
-import { sendCanPlayFun, sendMessage, updateBoardMP } from "utils/utils";
+import { sendCanPlayFun, sendMessage } from "utils/utils";
 
-const socket = io("http://localhost:5000");
+const socket = io("http://localhost:4000");
 
 //Definicija tipova za state-ove i funkcije
 interface User {
@@ -115,7 +115,7 @@ function JoinGame() {
     };
 
     const response = await axios.post(
-      "http://localhost:4000",
+      "http://localhost:4000/graphql",
       {
         query: query,
         variables: variables,
@@ -153,7 +153,7 @@ function JoinGame() {
     };
 
     const response = await axios.post(
-      "http://localhost:4000",
+      "http://localhost:/graphql",
       {
         query: query,
         variables: variables,
@@ -183,7 +183,6 @@ function JoinGame() {
     //Primljena poruka
     socket.on("receive_message", (data: MessageData) => {
       const name = data.player;
-      console.log(data);
 
       if (name !== username) {
         const currentPlayer = data.pl === "X" ? "O" : "X";
@@ -227,7 +226,7 @@ function JoinGame() {
   const SendId = async () => {
     const id = gameID ?? 0;
     if (anotherUserJoinerRoom) {
-      const response = await fetch("http://localhost:5000/gameLogic/sendId", {
+      const response = await fetch("http://localhost:4000/gameLogic/sendId", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -271,7 +270,7 @@ function JoinGame() {
       };
 
       const response = await axios.post(
-        "http://localhost:4000",
+        "http://localhost:4000/graphql",
         {
           query: query,
           variables: variables,
@@ -287,7 +286,13 @@ function JoinGame() {
 
       //##################################################
 
-      setBoard(await updateBoardMP(board, square, player));
+      setBoard((prevBoard) => {
+        const newBoard = [...prevBoard];
+        if (newBoard[square] === "") {
+          newBoard[square] = player;
+        }
+        return newBoard;
+      });
 
       //Dajemo dozvolu playeru 2 da igra
       sendCanPlayFun(room);
@@ -318,7 +323,7 @@ function JoinGame() {
       };
 
       const response = await axios.post(
-        "http://localhost:4000",
+        "http://localhost:4000/graphql",
         {
           query: query,
           variables: variables,
@@ -362,7 +367,7 @@ function JoinGame() {
     };
 
     const response = await axios.post(
-      "http://localhost:4000",
+      "http://localhost:4000/graphql",
       {
         query: query,
         variables: variables,
@@ -412,7 +417,7 @@ function JoinGame() {
     };
 
     const response = await axios.post(
-      "http://localhost:4000",
+      "http://localhost:4000/graphql",
       {
         query: query,
         variables: variables,
@@ -423,6 +428,9 @@ function JoinGame() {
         },
       }
     );
+
+
+    
 
     if (response.status === 200) {
       const data = await response.data.data?.checkWin;
@@ -476,7 +484,7 @@ function JoinGame() {
     };
 
     const response = await axios.post(
-      "http://localhost:4000",
+      "http://localhost:4000/graphql",
       {
         query: query,
         variables: variables,
@@ -525,13 +533,13 @@ function JoinGame() {
       `;
 
     const variables = {
-      id: myId,
+      id: myId + 1,
       player: player,
     };
 
     setTimeout(async () => {
       const response = await axios.post(
-        "http://localhost:4000",
+        "http://localhost:4000/graphql",
         {
           query: query,
           variables: variables,
@@ -571,7 +579,7 @@ function JoinGame() {
     // Treba da se poziva svaki drugi put, odnosno da se red u bazi pravi samo kad prvi to poziva
     if (firstPlayer) {
       const response = await axios.post(
-        "http://localhost:4000",
+        "http://localhost:4000/graphql",
         {
           query: query,
           variables: variables,
@@ -589,7 +597,7 @@ function JoinGame() {
       }
 
       const res = await fetch(
-        "http://localhost:5000/gameLogic/newGameCreated",
+        "http://localhost:4000/gameLogic/newGameCreated",
         {
           method: "POST",
           headers: {
@@ -621,7 +629,7 @@ function JoinGame() {
       };
       setTimeout(async () => {
         const response = await axios.post(
-          "http://localhost:4000",
+          "http://localhost:4000/graphql",
           {
             query: query,
             variables: variables,
@@ -660,7 +668,7 @@ function JoinGame() {
     };
 
     const response = await axios.post(
-      "http://localhost:4000",
+      "http://localhost:/graphql",
       {
         query: query,
         variables: variables,

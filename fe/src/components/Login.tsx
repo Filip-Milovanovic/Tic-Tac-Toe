@@ -21,7 +21,7 @@ const Login: React.FC = () => {
   const refreshToken = async () => {
     try {
       const response = await Axios.post(
-        "http://localhost:5000/refresh/refresh",
+        "http://localhost:4000/refresh/refresh",
         {
           token: user?.refreshToken,
         }
@@ -81,7 +81,7 @@ const Login: React.FC = () => {
 
     try {
       const response = await Axios.post(
-        "http://localhost:4000",
+        "http://localhost:4000/graphql",
         {
           query: query,
           variables: variables,
