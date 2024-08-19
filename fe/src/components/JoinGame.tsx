@@ -131,7 +131,6 @@ function JoinGame() {
     if (response.ok) {
       const data = await response.json();
       setGameID(data.id);
-      console.log(data.id);
     }
   };
 
@@ -475,7 +474,6 @@ function JoinGame() {
     if (response.ok) {
       const data = await response.json();
       setGameID(data.id);
-      console.log(data.id);
     }
   };
 
