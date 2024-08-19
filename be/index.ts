@@ -47,9 +47,9 @@ io.on("connection", (socket: Socket) => {
       pl,
       sq,
       rm,
-      playerr,
-    }: { playerr: string; pl: string; sq: number; rm: string } = req.body;
-    const data = { pl, sq, rm, playerr };
+      player,
+    }: { player: string; pl: string; sq: number; rm: string } = req.body;
+    const data = { pl, sq, rm, player };
     res.json({ message: "Message sent" });
     socket.broadcast.to(rm).emit("receive_message", data);
   });

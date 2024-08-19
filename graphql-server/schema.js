@@ -27,6 +27,37 @@ export const typeDefs = `#graphql
     loggedOut: Boolean!
   }
 
+  type AddMoveResponse {
+    player: String!
+  }
+
+  type CpuPlaysResponse{
+    move: Int!
+  }
+
+  type AddPlayer2Response{
+    playerJoined: Boolean!
+  }
+
+  type SetWinnerResponse{
+    winner: String!
+  }
+
+  type CheckTieResponse{
+    finished: Boolean!
+    winner: String!
+  }
+
+  type UpdateBoardResponse{
+    newBoard: [String!]!
+  }
+
+  type CheckWinResponse{
+    finished: Boolean!
+    gameFinished: Boolean!
+    winner: String!
+  }
+
   type Query{
     users: [User]
     user(id: ID!): User
@@ -37,7 +68,14 @@ export const typeDefs = `#graphql
     addUser(user: AddUserInput!): User
     logUser(user: LogUserInput!): LoginResponse
     createNewGame(player1: String!, type: String!): Game!
-  }
+    addMove(id: ID!, player: String!, move: Int!, sign: String!): AddMoveResponse!
+    cpuPlays(id:ID!, gameFinished: Boolean!, square: Int!, board:[String!]!): CpuPlaysResponse!
+    addPlayer2(id:ID!, player:String!): AddPlayer2Response!
+    setWinner(id:ID!, winner: String!): SetWinnerResponse!
+    checkTie(board:[String!]!, multiplayer:Boolean!, myId:ID!): CheckTieResponse!
+    updateBoard(prevBoard:[String!]!, move: Int!, sign: String!): UpdateBoardResponse!
+    checkWin(updatedBoard:[String!]!, Patterns:[[Int!]!]!, multiplayer:Boolean!, singleplayer:Boolean!,myId:ID!): CheckWinResponse!
+    }
 
   input AddUserInput{
     username: String!

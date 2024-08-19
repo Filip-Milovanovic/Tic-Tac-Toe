@@ -183,6 +183,7 @@ function JoinGame() {
     //Primljena poruka
     socket.on("receive_message", (data: MessageData) => {
       const name = data.player;
+      console.log(data);
 
       if (name !== username) {
         const currentPlayer = data.pl === "X" ? "O" : "X";
@@ -254,14 +255,33 @@ function JoinGame() {
       const playerr = user?.username ?? "";
 
       //Slanje u bazu podataka
-      await fetch(`http://localhost:5000/game/addMove/${gameID ?? myId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ player: playerr, move: square, sign: signn }),
-      });
+      const query = `
+      mutation makeMove($player: String!, $move: Int!, $id:ID!, $sign: String!){
+        addMove(player:$player, sign:$sign, move:$move, id: $id ) {
+          player
+        }
+      }
+     `;
 
+      const variables = {
+        player: player,
+        move: square,
+        sign: signn,
+        id: gameID ?? myId,
+      };
+
+      const response = await axios.post(
+        "http://localhost:4000",
+        {
+          query: query,
+          variables: variables,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       //Saljemo poruku drugom igracu sta smo odigrali
       await sendMessage(square, player, room, playerr);
 
@@ -282,13 +302,33 @@ function JoinGame() {
 
       const playerr = user?.username ?? "";
 
-      await fetch(`http://localhost:5000/game/addMove/${gameID}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+      const query = `
+      mutation makeMove($player: String!, $move: Int!, $id:ID!, $sign: String!){
+        addMove(player:$player, sign:$sign, move:$move, id: $id ) {
+          player
+        }
+      }
+     `;
+
+      const variables = {
+        player: player,
+        move: square,
+        sign: signn,
+        id: gameID,
+      };
+
+      const response = await axios.post(
+        "http://localhost:4000",
+        {
+          query: query,
+          variables: variables,
         },
-        body: JSON.stringify({ player: playerr, move: square, sign: signn }),
-      });
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       setBoard((prevBoard) => {
         const newBoard = [...prevBoard];
@@ -306,27 +346,40 @@ function JoinGame() {
   };
 
   const cpuPlays = async (square: number) => {
-    const response = await fetch(
-      `http://localhost:5000/gameLogic/cpuPlays/${gameID}`,
+    const query = `
+      mutation cpusTurn( $id:ID!, $gameFinished:Boolean!, $square: Int!, $board:[String!]!){
+        cpuPlays(id:$id, gameFinished:$gameFinished, square:$square, board:$board ) {
+          move
+        }
+      }
+     `;
+
+    const variables = {
+      id: gameID,
+      gameFinished: gameFinished,
+      square: square,
+      board: board,
+    };
+
+    const response = await axios.post(
+      "http://localhost:4000",
       {
-        method: "POST",
+        query: query,
+        variables: variables,
+      },
+      {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          gameFinished: gameFinished,
-          square: square,
-          board: board,
-        }),
       }
     );
 
-    if (response.ok) {
-      const data = await response.json();
+    if (response.status === 200) {
+      const move = await response.data.data?.cpuPlays.move;
       setBoard((prevBoard) => {
         const newBoard = [...prevBoard];
-        if (newBoard[data.move] === "") {
-          newBoard[data.move] = "O";
+        if (newBoard[move] === "") {
+          newBoard[move] = "O";
           checkWin(newBoard);
         }
         return newBoard;
@@ -340,49 +393,103 @@ function JoinGame() {
     const idStorage = Number(localStorage.getItem("gameID"));
     const myId = gameID !== undefined ? gameID : idStorage;
 
-    const response = await fetch(`http://localhost:5000/gameLogic/checkWin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        updatedBoard: updatedBoard,
-        multiplayer: multiplayer,
-        singleplayer: singleplayer,
-        Patterns: Patterns,
-        myId: myId,
-        gameID: myId,
-      }),
-    });
+    const query = `
+       mutation checkWin($updatedBoard:[String!]!, $Patterns:[[Int!]!]!, $multiplayer:Boolean!, $singleplayer:Boolean!,$myId:ID!){
+        checkWin(updatedBoard: $updatedBoard, Patterns: $Patterns, multiplayer: $multiplayer, singleplayer: $singleplayer, myId: $myId  ) {
+          finished
+          gameFinished
+          winner
+        }
+      }
+    `;
 
-    if (response.ok) {
-      const data = await response.json();
+    const variables = {
+      updatedBoard: updatedBoard,
+      multiplayer: multiplayer,
+      singleplayer: singleplayer,
+      Patterns: Patterns,
+      myId: myId,
+    };
+
+    const response = await axios.post(
+      "http://localhost:4000",
+      {
+        query: query,
+        variables: variables,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      const data = await response.data.data?.checkWin;
       setFinished(data.finished);
+      gameFinished = data.gameFinished;
       setWinner(data.winner);
       setNewGameCreated(false);
-      gameFinished = data.gameFinished;
     }
+
+    // const response = await fetch(`http://localhost:5000/gameLogic/checkWin`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     updatedBoard: updatedBoard,
+    //     multiplayer: multiplayer,
+    //     singleplayer: singleplayer,
+    //     Patterns: Patterns,
+    //     myId: myId,
+    //     gameID: myId,
+    //   }),
+    // });
+
+    // if (response.ok) {
+    //   const data = await response.json();
+    //   setFinished(data.finished);
+    //   setWinner(data.winner);
+    //   setNewGameCreated(false);
+    //   gameFinished = data.gameFinished;
+    // }
   };
 
   const checkTie = async () => {
     const idStorage = Number(localStorage.getItem("gameID"));
     const myId = gameID !== undefined ? gameID : idStorage;
 
-    const response = await fetch(`http://localhost:5000/gameLogic/checkTie`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        board: board,
-        multiplayer: multiplayer,
-        gameID: myId,
-        myId: myId,
-      }),
-    });
+    const query = `
+      mutation checkTie($board: [String!]!, $multiplayer: Boolean!, $myId: ID!){
+        checkTie(board: $board, multiplayer: $multiplayer, myId: $myId) {
+          finished
+          winner
+        }
+      }
+    `;
 
-    if (response.ok) {
-      const data = await response.json();
+    const variables = {
+      board: board,
+      multiplayer: multiplayer,
+      myId: myId,
+    };
+
+    const response = await axios.post(
+      "http://localhost:4000",
+      {
+        query: query,
+        variables: variables,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      const data = await response.data.data?.checkTie;
       setFinished(data.finished);
       setWinner(data.winner);
       setNewGameCreated(false);
@@ -408,16 +515,31 @@ function JoinGame() {
     const player = user?.username ?? "";
 
     //Saljemo API zahtjev da bi se upisao u bazu podataka
+    const myId = Number(localStorage.getItem("gameID"));
+    const query = `
+      mutation player2joins($id: ID!, $player: String!){
+        addPlayer2(id: $id, player: $player) {
+          playerJoined
+        }
+      }
+      `;
+
+    const variables = {
+      id: myId,
+      player: player,
+    };
+
     setTimeout(async () => {
-      const myId = Number(localStorage.getItem("gameID"));
-      const response = await fetch(
-        `http://localhost:5000/game/addPlayer2/${myId}`,
+      const response = await axios.post(
+        "http://localhost:4000",
         {
-          method: "PATCH",
+          query: query,
+          variables: variables,
+        },
+        {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ player2: player }),
         }
       );
     }, 500);
@@ -485,19 +607,32 @@ function JoinGame() {
       setNewGameCreated(false);
       setCanPlay(false);
 
+      const query = `
+      mutation player2joins($id: ID!, $player: String!){
+        addPlayer2(id: $id, player: $player) {
+          playerJoined
+        }
+      }
+      `;
+      const myId = Number(localStorage.getItem("gameID"));
+      const variables = {
+        id: myId,
+        player: player,
+      };
       setTimeout(async () => {
-        const myId = Number(localStorage.getItem("gameID"));
-        const res = await fetch(
-          `http://localhost:5000/game/addPlayer2/${myId}`,
+        const response = await axios.post(
+          "http://localhost:4000",
           {
-            method: "PATCH",
+            query: query,
+            variables: variables,
+          },
+          {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ player2: player }),
           }
         );
-      }, 1000);
+      }, 500);
     }
   };
 
