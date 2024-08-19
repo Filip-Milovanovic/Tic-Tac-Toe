@@ -153,7 +153,7 @@ function JoinGame() {
     };
 
     const response = await axios.post(
-      "http://localhost:/graphql",
+      "http://localhost:4000/graphql",
       {
         query: query,
         variables: variables,
@@ -166,7 +166,7 @@ function JoinGame() {
     );
 
     if (response.data.data.createNewGame.id !== "") {
-      const data = await response.data.data.createNewGame.id;
+      const data = await response.data.data.createNewGame?.id;
       setGameID(data);
     }
   };
@@ -439,29 +439,6 @@ function JoinGame() {
       setWinner(data.winner);
       setNewGameCreated(false);
     }
-
-    // const response = await fetch(`http://localhost:5000/gameLogic/checkWin`, {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     updatedBoard: updatedBoard,
-    //     multiplayer: multiplayer,
-    //     singleplayer: singleplayer,
-    //     Patterns: Patterns,
-    //     myId: myId,
-    //     gameID: myId,
-    //   }),
-    // });
-
-    // if (response.ok) {
-    //   const data = await response.json();
-    //   setFinished(data.finished);
-    //   setWinner(data.winner);
-    //   setNewGameCreated(false);
-    //   gameFinished = data.gameFinished;
-    // }
   };
 
   const checkTie = async () => {
@@ -668,7 +645,7 @@ function JoinGame() {
     };
 
     const response = await axios.post(
-      "http://localhost:/graphql",
+      "http://localhost:4000/graphql",
       {
         query: query,
         variables: variables,
@@ -743,7 +720,12 @@ function JoinGame() {
       {/* If multiplayer is true, and user is in a room */}
       {multiplayer && joinedRoom && (
         <>
-          {!gameStarted && <p>Waiting for other player to join...</p>}
+          {!gameStarted && (
+            <>
+              <p className="toast-msg">Waiting for other player to join...</p>
+              <span className="loader"></span>
+            </>
+          )}
           <div className="board">
             {[0, 1, 2].map((rowIndex) => (
               <div className="row" key={rowIndex}>
@@ -765,14 +747,19 @@ function JoinGame() {
             ))}
           </div>
 
-          {finished ? <h1>{renderMessage()}</h1> : ""}
-          {finished && firstPlayer ? (
-            <button onClick={handleNewGame}>New Game</button>
-          ) : (
-            ""
+          {finished && (
+            <div className="finished-game-div">
+              <h1 className="finish-message">{renderMessage()}</h1>
+              {firstPlayer && (
+                <button className="new-game-btn" onClick={handleNewGame}>
+                  New Game
+                </button>
+              )}
+            </div>
           )}
+
           {finished && newGameCreated ? (
-            <button onClick={handleNewGame}>New Game</button>
+            <button className="new-game-btn" onClick={handleNewGame}>New Game</button>
           ) : (
             ""
           )}
@@ -801,10 +788,15 @@ function JoinGame() {
             ))}
           </div>
           {finished && (
-            <>
-              <h1>{renderMessage()}</h1>
-              <button onClick={handleNewGameSingleplayer}>New Game</button>
-            </>
+            <div className="finished-game-div">
+              <h1 className="finish-message">{renderMessage()}</h1>
+              <button
+                className="new-game-btn"
+                onClick={handleNewGameSingleplayer}
+              >
+                New Game
+              </button>
+            </div>
           )}
         </>
       )}
