@@ -26,6 +26,7 @@ body {
   height: 100vh;
   display: flex;
   align-items: center;
+  flex-direction: column;
   justify-content: center;
 }
 
@@ -326,4 +327,58 @@ body {
 
 .square:active {
   background-color: lightgray;
+}
+
+/* FINISH GAME MESSAGE AND BUTTON */
+.finished-game-div {
+  display: flex;
+  margin-top: 4rem;
+}
+
+.new-game-btn {
+  font-size: 4.8rem;
+  padding: 1rem 3rem;
+  border-radius: 2rem;
+  background-color: #ff2121;
+  color: rgb(255, 236, 236);
+  cursor: pointer;
+}
+
+.new-game-btn:hover {
+  scale: 110%;
+  transition: 0.5s all;
+}
+
+.finish-message {
+  margin: 1rem 3rem;
+  align-self: center;
+  font-size: 4.8rem;
+}
+
+/* TOAST MESSAGE */
+.toast-msg {
+  font-size: 3.2rem;
+  margin-bottom: 4rem;
+}
+
+/* SPINNER */
+.loader {
+  width: 7.5rem;
+  height: 7.5rem;
+  border: 5px solid #ff2121;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+  margin-bottom: 4rem;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

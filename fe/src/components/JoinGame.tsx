@@ -534,7 +534,12 @@ function JoinGame() {
       {/* If multiplayer is true, and user is in a room */}
       {multiplayer && joinedRoom && (
         <>
-          {!gameStarted && <p>Waiting for other player to join...</p>}
+          {!gameStarted && (
+            <>
+              <p className="toast-msg">Waiting for other player to join...</p>
+              <span className="loader"></span>
+            </>
+          )}
           <div className="board">
             {[0, 1, 2].map((rowIndex) => (
               <div className="row" key={rowIndex}>
@@ -556,12 +561,17 @@ function JoinGame() {
             ))}
           </div>
 
-          {finished ? <h1>{renderMessage()}</h1> : ""}
-          {finished && firstPlayer ? (
-            <button onClick={handleNewGame}>New Game</button>
-          ) : (
-            ""
+          {finished && (
+            <div className="finished-game-div">
+              <h1 className="finish-message">{renderMessage()}</h1>
+              {firstPlayer && (
+                <button className="new-game-btn" onClick={handleNewGame}>
+                  New Game
+                </button>
+              )}
+            </div>
           )}
+
           {finished && newGameCreated ? (
             <button onClick={handleNewGame}>New Game</button>
           ) : (
@@ -592,10 +602,15 @@ function JoinGame() {
             ))}
           </div>
           {finished && (
-            <>
-              <h1>{renderMessage()}</h1>
-              <button onClick={handleNewGameSingleplayer}>New Game</button>
-            </>
+            <div className="finished-game-div">
+              <h1 className="finish-message">{renderMessage()}</h1>
+              <button
+                className="new-game-btn"
+                onClick={handleNewGameSingleplayer}
+              >
+                New Game
+              </button>
+            </div>
           )}
         </>
       )}
