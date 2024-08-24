@@ -434,3 +434,10 @@ body {
   height: 100vh;
   gap: 30rem;
 }
+
+/* ######################## */
+/* GAME */
+.game--hd {
+  font-size: 4rem;
+  margin-bottom: 4rem;
+}

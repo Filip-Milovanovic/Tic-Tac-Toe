@@ -41,6 +41,7 @@ const io = new Server(server, {
 io.on("connection", (socket: Socket) => {
   socket.on("join_room", (data: string) => {
     socket.join(data);
+    console.log("joined");
     socket.to(data).emit("user_joined", { message: "New user has joined" });
   });
 
@@ -61,6 +62,13 @@ io.on("connection", (socket: Socket) => {
     const data = { rm, id };
     res.json({ message: "ID sent" });
     socket.to(rm).emit("receive_id", data);
+  });
+
+  app.post("/gameLogic/gameStarted", (req: Request, res: Response) => {
+    const { rm, gameStarted }: { rm: string; gameStarted: Boolean } = req.body;
+    const data = { rm, gameStarted };
+    res.json({ message: "GameStarted sent" });
+    socket.to(rm).emit("receive_gamestarted", data);
   });
 
   app.post("/gameLogic/newGameCreated", (req: Request, res: Response) => {
