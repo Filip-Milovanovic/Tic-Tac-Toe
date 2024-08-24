@@ -396,6 +396,12 @@ const Game = () => {
   return (
     <>
       <h3 className="game--hd">Game ID: {getRoom()}</h3>
+      {!gameStarted && (
+        <>
+          <p className="toast-msg">Waiting for other player to join...</p>
+          <span className="loader"></span>
+        </>
+      )}
       <div className="board">
         {[0, 1, 2].map((rowIndex) => (
           <div className="row" key={rowIndex}>
