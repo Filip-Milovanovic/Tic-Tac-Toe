@@ -34,7 +34,7 @@ router.post("/cpuPlays/:gameID", async (req: Request, res: Response) => {
   const signCpu = "O";
 
   await fetch(`http://localhost:5000/game/addMove/${gameID}`, {
-    method: "PATCH",
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
@@ -123,7 +123,7 @@ router.post("/checkTie", async (req: Request, res: Response) => {
 
     if (multiplayer) {
       await fetch(`http://localhost:5000/game/setWinner/${myId}`, {
-        method: "PATCH",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -131,7 +131,7 @@ router.post("/checkTie", async (req: Request, res: Response) => {
       });
     } else {
       await fetch(`http://localhost:5000/game/setWinner/${gameID}`, {
-        method: "PATCH",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -183,7 +183,7 @@ router.post("/checkWin", async (req: Request, res: Response) => {
 
       if (multiplayer) {
         await fetch(`http://localhost:5000/game/setWinner/${myId}`, {
-          method: "PATCH",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
@@ -191,7 +191,7 @@ router.post("/checkWin", async (req: Request, res: Response) => {
         });
       } else if (singleplayer) {
         await fetch(`http://localhost:5000/game/setWinner/${gameID}`, {
-          method: "PATCH",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },

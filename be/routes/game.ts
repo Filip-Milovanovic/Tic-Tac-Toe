@@ -43,7 +43,7 @@ router.post("/getHistory", async (req, res) => {
 });
 
 // Update reda - dodajemo player2
-router.patch("/addPlayer2/:id", async (req: Request, res: Response) => {
+router.post("/addPlayer2/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   const { player2 }: { player2: string } = req.body;
 
@@ -65,7 +65,7 @@ router.patch("/addPlayer2/:id", async (req: Request, res: Response) => {
 });
 
 // Dodavanje poteza
-router.patch("/addMove/:id", async (req: Request, res: Response) => {
+router.post("/addMove/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   const { move, player, sign }: { move: string; player: string; sign: string } =
     req.body;
@@ -93,7 +93,7 @@ router.patch("/addMove/:id", async (req: Request, res: Response) => {
 });
 
 // Dodavanje polja Winner
-router.patch("/setWinner/:id", async (req: Request, res: Response) => {
+router.post("/setWinner/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   const { winner }: { winner: string } = req.body;
   let w;

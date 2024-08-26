@@ -24,9 +24,6 @@ const Header: React.FC = () => {
     }
   }, []);
 
-  const reload = () => {
-    window.location.reload();
-  };
 
   const logout = async (e: React.MouseEvent<HTMLButtonElement>) => {
     try {
@@ -67,9 +64,6 @@ const Header: React.FC = () => {
     <nav className="navbar">
       <button className="navbar-button" onClick={logout}>
         LOG OUT
-      </button>
-      <button className="navbar-button" onClick={reload}>
-        CREATE NEW GAME
       </button>
     </nav>
   );
