@@ -9,7 +9,7 @@ const GameHistory = () => {
   useEffect(() => {
     const user = localStorage.getItem("user");
     const parsedData = JSON.parse(user);
-    
+
     const getResults = async () => {
       try {
         const response = await fetch("http://localhost:5000/game/getHistory", {
@@ -39,7 +39,9 @@ const GameHistory = () => {
   return (
     <div className="results-container">
       {!showResults && <h1>Show All Results</h1>}
-      {!showResults && <button onClick={() => setShowResults(true)}>SHOW</button>}
+      {!showResults && (
+        <button onClick={() => setShowResults(true)}>SHOW</button>
+      )}
       {showResults && <ResultsList results={historyResult} />}
     </div>
   );
@@ -94,9 +96,6 @@ const ResultsList = ({ results }) => {
 };
 
 const ResultsListElement = ({ data, updateClicked }) => {
-
-
-  
   return (
     <li
       onClick={() => {
@@ -115,7 +114,17 @@ const ResultsListElement = ({ data, updateClicked }) => {
       {data.finished && (
         <div className="history-div">
           <p className="hist-hd">Winner: </p>
-          <p>{data.winner === "Player 1" ? data.player1 : data.player2}</p>
+          <p>
+            {(() => {
+              if (data.winner === "Player 1") {
+                return data.player1;
+              } else if (data.winner === "Player 2") {
+                return data.player2;
+              } else {
+                return "tie";
+              }
+            })()}
+          </p>
         </div>
       )}
 
