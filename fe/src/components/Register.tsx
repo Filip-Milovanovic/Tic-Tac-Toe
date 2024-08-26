@@ -1,10 +1,21 @@
 import React, { useState } from "react";
 import Axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Register: React.FC = () => {
+  let navigate = useNavigate();
   // Stanja za registraciju
   const [usernameReg, setUsernameReg] = useState<string>("");
   const [passwordReg, setPasswordReg] = useState<string>("");
+  const [registred, setRegistred] = useState(false);
+
+  function handleRegistred() {
+    setRegistred(true);
+  }
+
+  function handleClickRegister() {
+    navigate("/login");
+  }
 
   const register = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -13,7 +24,7 @@ const Register: React.FC = () => {
         username: usernameReg,
         password: passwordReg,
       });
-      console.log(response);
+      handleRegistred();
     } catch (err) {
       console.log(err);
     }
@@ -42,6 +53,7 @@ const Register: React.FC = () => {
         <button className="btn--reg_reg" type="submit">
           Register
         </button>
+        {registred && <button className="btn--reg_reg" onClick={handleClickRegister}>Login</button>}
       </form>
     </div>
   );

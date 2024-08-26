@@ -4,6 +4,7 @@ import io from "socket.io-client";
 import Square from "./Square";
 import { Patterns } from "../WinningPatterns";
 import { sendCanPlayFun, sendMessage, updateBoardMP } from "utils/utils";
+import { useNavigate } from "react-router-dom";
 
 const socket = io("http://localhost:5000");
 
@@ -37,6 +38,8 @@ interface CanPlayData {
 }
 
 function JoinGame() {
+  let navigate = useNavigate();
+
   //User information state
   const [user, setUser] = useState<User | null>(null);
 
@@ -489,6 +492,10 @@ function JoinGame() {
     }
   };
 
+  const handleGameHistory = () => {
+    navigate("/gameHistory");
+  };
+
   return (
     <>
       <Header />
@@ -514,6 +521,9 @@ function JoinGame() {
               Join
             </button>
           </div>
+          <button onClick={handleGameHistory} className="joingame-btn --hist">
+            Get history of your games
+          </button>
         </div>
       )}
       {/* If multiplayer is true, and user did not join any room */}

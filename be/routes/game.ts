@@ -28,6 +28,20 @@ router.post("/newGame", async (req: Request, res: Response) => {
   }
 });
 
+router.post("/getHistory", async (req, res) => {
+  const { name } = req.body;
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM game WHERE player1 = $1 OR player2 = $1",
+      [name]
+    );
+    res.send(result.rows);
+  } catch (err) {
+    console.log((err as Error).message);
+  }
+});
+
 // Update reda - dodajemo player2
 router.patch("/addPlayer2/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -42,7 +56,6 @@ router.patch("/addPlayer2/:id", async (req: Request, res: Response) => {
     if (result.rowCount === 0) {
       res.status(404).send("Game not found");
     } else {
-
       res.json({ playerJoined: true });
     }
   } catch (err) {

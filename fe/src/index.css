@@ -20,7 +20,7 @@ body {
 }
 
 .container {
-  max-width: 120rem;
+  max-width: 280rem;
   padding: 0 3.2rem;
   margin: 0 auto;
   height: 100vh;
@@ -215,6 +215,9 @@ body {
 
 /* ######################################### */
 /* JOIN GAME */
+.--hist {
+  margin-top: 4rem;
+}
 
 .joingame-container {
   display: flex;
@@ -381,4 +384,53 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* RESULT LIST */
+
+.result-list {
+  display: flex;
+  flex-direction: column;
+  max-width: 50%;
+  font-size: 3rem;
+  height: 100vh;
+  overflow: scroll;
+  align-self: center;
+  justify-self: center;
+}
+
+.result-list-item {
+  display: flex;
+  margin-bottom: 4rem;
+  border: 0.2rem solid black;
+  border-radius: 1rem;
+  padding: 2rem 4rem;
+  width: 100%;
+  cursor: pointer;
+}
+
+.result-list-item:hover {
+  background-color: #ddd;
+  transition: all 0.4s;
+}
+
+.history-div {
+  margin-right: 2.5rem;
+}
+
+.hist-hd {
+  margin-bottom: 1.5rem;
+}
+
+.results-container {
+  width: 50%;
+  text-align: left;
+  height: 100vh;
+}
+
+.main-div {
+  display: flex;
+  margin-top: 5rem;
+  height: 100vh;
+  gap: 30rem;
 }
