@@ -97,43 +97,50 @@ const ResultsList = ({ results }) => {
 
 const ResultsListElement = ({ data, updateClicked }) => {
   return (
-    <li
-      onClick={() => {
-        updateClicked(data.player1moves, data.player2moves);
-      }}
-      className="result-list-item"
-    >
-      <div className="history-div">
-        <p className="hist-hd">Player1: </p>
-        <p>{data.player1}</p>
-      </div>
-      <div className="history-div">
-        <p className="hist-hd">Player2: </p>
-        <p>{data.player2}</p>
-      </div>
-      {data.finished && (
-        <div className="history-div">
-          <p className="hist-hd">Winner: </p>
-          <p>
-            {(() => {
-              if (data.winner === "Player 1") {
-                return data.player1;
-              } else if (data.winner === "Player 2") {
-                return data.player2;
-              } else {
-                return "tie";
-              }
-            })()}
-          </p>
-        </div>
+    <>
+      {data.player2 !== null ? (
+        <li
+          onClick={() => {
+            updateClicked(data.player1moves, data.player2moves);
+          }}
+          className="result-list-item"
+        >
+          <div className="history-div">
+            <p className="hist-hd">Player1: </p>
+            <p>{data.player1}</p>
+          </div>
+          <div className="history-div">
+            <p className="hist-hd">Player2: </p>
+            <p>{data.player2}</p>
+          </div>
+          {data.finished && (
+            <div className="history-div">
+              <p className="hist-hd">Winner: </p>
+              <p>
+                {(() => {
+                  if (data.winner === "Player 1") {
+                    return data.player1;
+                  } else if (data.winner === "Player 2") {
+                    return data.player2;
+                  } else {
+                    return "tie";
+                  }
+                })()}
+              </p>
+            </div>
+          )}
+  
+          <div className="history-div">
+            <p className="hist-hd">Finished: </p>
+            <p>{data.finished ? "finished" : "not finished"}</p>
+          </div>
+        </li>
+      ) : (
+        ""
       )}
-
-      <div className="history-div">
-        <p className="hist-hd">Finished: </p>
-        <p>{data.finished ? "finished" : "not finished"}</p>
-      </div>
-    </li>
+    </>
   );
+  
 };
 
 export default GameHistory;
