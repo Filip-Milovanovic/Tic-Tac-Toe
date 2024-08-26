@@ -393,15 +393,14 @@ const Game = () => {
     }
   };
 
+  const getType = () => {
+    return localStorage.getItem("type");
+  };
+
   return (
     <>
       <h3 className="game--hd">Game ID: {getRoom()}</h3>
-      {!gameStarted && (
-        <>
-          <p className="toast-msg">Waiting for other player to join...</p>
-          <span className="loader"></span>
-        </>
-      )}
+      {!gameStarted && <RenderSpinner type={type} />}
       <div className="board">
         {[0, 1, 2].map((rowIndex) => (
           <div className="row" key={rowIndex}>
@@ -453,6 +452,17 @@ const Game = () => {
       )}
     </>
   );
+};
+
+const RenderSpinner = ({ type }) => {
+  if (type === "multiplayer") {
+    return (
+      <>
+        <p className="toast-msg">Waiting for other player to join...</p>
+        <span className="loader"></span>
+      </>
+    );
+  } else return "";
 };
 
 export default Game;

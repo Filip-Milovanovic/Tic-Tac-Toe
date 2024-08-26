@@ -94,6 +94,9 @@ const ResultsList = ({ results }) => {
 };
 
 const ResultsListElement = ({ data, updateClicked }) => {
+
+
+  
   return (
     <li
       onClick={() => {
